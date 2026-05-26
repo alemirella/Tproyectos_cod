@@ -2,8 +2,18 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ok, fail } from "../utils/apiResponse.js";
 import { studentService } from "../services/student.service.js";
 
-export const listStudents = asyncHandler(async (_req, res) =>
-  ok(res, await studentService.list())
+function handleDuplicate(error, res) {
+  if (error?.code !== 11000) return null;
+  const field = Object.keys(error.keyPattern || {})[0];
+  if (field === "code")
+    return fail(res, "Ya existe un estudiante con ese código", 409);
+  if (field === "email")
+    return fail(res, "Ya existe un estudiante con ese correo", 409);
+  return fail(res, "Estudiante duplicado", 409);
+}
+
+export const listStudents = asyncHandler(async (req, res) =>
+  ok(res, await studentService.list(req.query))
 );
 
 export const getStudent = asyncHandler(async (req, res) => {
@@ -25,20 +35,37 @@ export const getMyStudent = asyncHandler(async (req, res) => {
   ok(res, item);
 });
 
-export const createStudent = asyncHandler(async (req, res) =>
-  ok(res, await studentService.create(req.body), 201)
-);
+export const createStudent = asyncHandler(async (req, res) => {
+  try {
+    const item = await studentService.create(req.body);
+    ok(res, item, 201);
+  } catch (error) {
+    const dup = handleDuplicate(error, res);
+    if (dup) return dup;
+    if (error?.name === "ValidationError")
+      return fail(res, error.message, 400);
+    throw error;
+  }
+});
 
 export const updateStudent = asyncHandler(async (req, res) => {
-  const item = await studentService.update(req.params.id, req.body);
-  if (!item) return fail(res, "Estudiante no encontrado", 404);
-  ok(res, item);
+  try {
+    const item = await studentService.update(req.params.id, req.body);
+    if (!item) return fail(res, "Estudiante no encontrado", 404);
+    ok(res, item);
+  } catch (error) {
+    const dup = handleDuplicate(error, res);
+    if (dup) return dup;
+    if (error?.name === "ValidationError")
+      return fail(res, error.message, 400);
+    throw error;
+  }
 });
 
 export const deleteStudent = asyncHandler(async (req, res) => {
   const item = await studentService.remove(req.params.id);
   if (!item) return fail(res, "Estudiante no encontrado", 404);
-  ok(res, { deleted: true });
+  ok(res, { deleted: true, student: item });
 });
 
 export const updateApprovedCourses = asyncHandler(async (req, res) => {
