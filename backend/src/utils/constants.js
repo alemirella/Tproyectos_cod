@@ -16,6 +16,13 @@ export const CLASSROOM_STATUSES = [
   "INACTIVE",
 ];
 export const ENROLLMENT_STATUS = ["DRAFT", "VALID", "INVALID", "CONFIRMED"];
+/** Estado administrativo de matrícula visible en la ficha del estudiante. */
+export const STUDENT_ENROLLMENT_STATUSES = [
+  "PENDING",
+  "VALIDATED",
+  "CONFIRMED",
+  "REJECTED",
+];
 export const SCHEDULE_STATUS = ["GENERATED", "PARTIAL", "FAILED"];
 
 export const DAY_LABELS = {
