@@ -112,16 +112,10 @@ export default function StudentHomePage() {
           </p>
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <QuickAction
-              to="/student/courses"
-              icon={BookOpen}
-              label="Seleccionar cursos"
-              accent="bg-blue-50 text-sgoha-secondary"
-            />
-            <QuickAction
               to="/student/enrollment-validation"
               icon={ShieldCheck}
-              label="Validar matrícula"
-              accent="bg-green-50 text-green-600"
+              label="Seleccionar y validar cursos"
+              accent="bg-blue-50 text-sgoha-secondary"
             />
             <QuickAction
               to="/student/enrollment"
@@ -134,6 +128,12 @@ export default function StudentHomePage() {
               icon={Clock}
               label="Ver mi horario"
               accent="bg-slate-100 text-slate-600"
+            />
+            <QuickAction
+              to="/student/profile"
+              icon={BookOpen}
+              label="Perfil académico"
+              accent="bg-green-50 text-green-600"
             />
           </div>
         </Card>
