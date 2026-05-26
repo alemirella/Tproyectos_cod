@@ -1,9 +1,11 @@
 /**
  * Motor CSP básico para asignación curso + docente + aula + franja.
+ * Solo opera sobre franjas que pertenecen al catálogo oficial HORALV.
  */
+import { VALID_SLOT_KEYS, slotKey as buildSlotKey } from "../constants/timeBlocks.js";
 
 function slotKey(timeSlot) {
-  return `${timeSlot.day}|${timeSlot.startTime}|${timeSlot.endTime}`;
+  return buildSlotKey(timeSlot.day, timeSlot.startTime, timeSlot.endTime);
 }
 
 function teacherAvailable(teacher, timeSlot) {
@@ -44,7 +46,10 @@ export function generateBasicSchedule({
   const busyClassroom = new Set();
   const busyStudent = new Set();
 
-  const activeSlots = timeSlots.filter((t) => t.active !== false);
+  // Solo aceptamos franjas activas y dentro del catálogo HORALV.
+  const activeSlots = timeSlots.filter(
+    (t) => t.active !== false && VALID_SLOT_KEYS.has(slotKey(t))
+  );
 
   for (const courseId of courseIds) {
     const course = confirmed

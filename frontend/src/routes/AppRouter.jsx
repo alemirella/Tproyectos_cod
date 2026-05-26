@@ -13,6 +13,7 @@ import LoginPage from "../pages/auth/LoginPage.jsx";
 import DashboardPage from "../pages/dashboard/DashboardPage.jsx";
 import AdminPlaceholderPage from "../pages/admin/AdminPlaceholderPage.jsx";
 import UsersPage from "../pages/admin/UsersPage.jsx";
+import TimeSlotsPage from "../pages/timeslots/TimeSlotsPage.jsx";
 import CoursesPage from "../pages/courses/CoursesPage.jsx";
 import TeachersPage from "../pages/teachers/TeachersPage.jsx";
 import TeacherAvailabilityAdminPage from "../pages/teachers/TeacherAvailabilityPage.jsx";
@@ -70,7 +71,7 @@ export default function AppRouter() {
             />
             <Route path="/classrooms" element={<AdminPlaceholderPage />} />
             <Route path="/students" element={<AdminPlaceholderPage />} />
-            <Route path="/timeslots" element={<AdminPlaceholderPage />} />
+            <Route path="/timeslots" element={<TimeSlotsPage />} />
             <Route path="/enrollments" element={<AdminPlaceholderPage />} />
             <Route path="/schedules/generate" element={<ScheduleGenerationPage />} />
             <Route path="/schedules" element={<ScheduleResultsPage />} />

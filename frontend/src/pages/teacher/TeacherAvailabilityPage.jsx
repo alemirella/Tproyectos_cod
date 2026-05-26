@@ -5,9 +5,9 @@ import Card from "../../components/ui/Card.jsx";
 import AvailabilityGrid from "../../components/availability/AvailabilityGrid.jsx";
 import { teacherPortalService } from "../../services/teacherPortalService.js";
 import {
-  BLOCK_HOURS,
+  BLOCK_MINUTES,
   countAvailabilityStats,
-} from "../../utils/availabilityConstants.js";
+} from "../../constants/timeBlocks.js";
 
 /**
  * Disponibilidad horaria del docente autenticado.
@@ -112,7 +112,8 @@ export default function TeacherAvailabilityPage() {
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-slate-500">
-            Cada bloque equivale a {BLOCK_HOURS}h y será usado por el motor CSP.
+            Cada bloque equivale a {BLOCK_MINUTES} minutos académicos (HORALV)
+            y será usado por el motor CSP.
           </p>
           <button
             type="button"

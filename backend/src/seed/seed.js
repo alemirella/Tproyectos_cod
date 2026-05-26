@@ -6,16 +6,12 @@ import Teacher from "../models/Teacher.js";
 import Classroom from "../models/Classroom.js";
 import Student from "../models/Student.js";
 import TimeSlot from "../models/TimeSlot.js";
-import { DAYS } from "../utils/constants.js";
-
-const SLOTS = [
-  ["07:00", "09:00"],
-  ["09:00", "11:00"],
-  ["11:00", "13:00"],
-  ["15:00", "17:00"],
-  ["17:00", "19:00"],
-  ["19:00", "21:00"],
-];
+import {
+  TIME_BLOCKS,
+  DAYS,
+  DAY_KEYS,
+  buildAllTimeSlots,
+} from "../constants/timeBlocks.js";
 
 await connectDB();
 
@@ -51,13 +47,18 @@ const c2 = await Course.create({
   prerequisites: [],
 });
 
+// Disponibilidad demo: lunes a viernes en TODOS los bloques HORALV.
+const weekdayKeys = DAY_KEYS.filter(
+  (key) => key !== "SATURDAY" && key !== "SUNDAY"
+);
+
 await Teacher.create({
   fullName: "Ana García",
   email: "ana.garcia@sgoha.local",
   specialty: "Informática",
   availableCourses: [c1._id],
-  availability: DAYS.slice(0, 5).flatMap((day) =>
-    SLOTS.map(([startTime, endTime]) => ({ day, startTime, endTime }))
+  availability: weekdayKeys.flatMap((day) =>
+    TIME_BLOCKS.map(({ startTime, endTime }) => ({ day, startTime, endTime }))
   ),
 });
 
@@ -74,18 +75,12 @@ await Student.create({
   approvedCourses: [c2._id],
 });
 
-for (const day of DAYS) {
-  for (const [startTime, endTime] of SLOTS) {
-    await TimeSlot.create({
-      day,
-      startTime,
-      endTime,
-      label: `${day} ${startTime}-${endTime}`,
-      active: true,
-    });
-  }
-}
+// Genera las 98 franjas oficiales HORALV (7 días x 14 bloques).
+const allSlots = buildAllTimeSlots().map((s) => ({ ...s, active: true }));
+await TimeSlot.insertMany(allSlots, { ordered: false });
 
 console.log("Seed completado.");
+console.log(`Franjas HORALV generadas: ${allSlots.length}`);
+console.log(`Días: ${DAYS.length} · Bloques: ${TIME_BLOCKS.length}`);
 console.log("Login:", admin.email, "/ admin123");
 process.exit(0);

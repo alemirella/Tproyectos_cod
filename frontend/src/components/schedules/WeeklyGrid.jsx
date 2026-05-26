@@ -1,7 +1,7 @@
 import {
-  AVAILABILITY_DAYS,
+  DAYS as AVAILABILITY_DAYS,
   TIME_BLOCKS,
-} from "../../utils/availabilityConstants.js";
+} from "../../constants/timeBlocks.js";
 
 /**
  * Grilla semanal reutilizable para mostrar horarios académicos.

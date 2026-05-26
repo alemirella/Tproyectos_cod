@@ -1,8 +1,8 @@
 import {
-  AVAILABILITY_DAYS,
+  DAYS as AVAILABILITY_DAYS,
   TIME_BLOCKS,
   slotKey,
-} from "../../utils/availabilityConstants.js";
+} from "../../constants/timeBlocks.js";
 
 export default function AvailabilityGrid({
   value = [],

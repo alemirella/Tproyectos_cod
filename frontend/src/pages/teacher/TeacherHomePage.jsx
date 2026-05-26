@@ -13,7 +13,7 @@ import PageHeader from "../../components/ui/PageHeader.jsx";
 import StatCard from "../../components/ui/StatCard.jsx";
 import Card from "../../components/ui/Card.jsx";
 import { teacherPortalService } from "../../services/teacherPortalService.js";
-import { BLOCK_HOURS } from "../../utils/availabilityConstants.js";
+import { countAvailabilityStats } from "../../constants/timeBlocks.js";
 
 export default function TeacherHomePage() {
   const { user } = useAuth();
@@ -30,7 +30,9 @@ export default function TeacherHomePage() {
   }, []);
 
   const teacher = summary?.teacher;
-  const weeklyHours = (summary?.blocksCount || 0) * BLOCK_HOURS;
+  const { hours: weeklyHours } = countAvailabilityStats(
+    teacher?.availability || []
+  );
 
   return (
     <div className="space-y-6">
