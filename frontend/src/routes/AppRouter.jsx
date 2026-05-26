@@ -35,7 +35,6 @@ import TeacherProfilePage from "../pages/teacher/TeacherProfilePage.jsx";
 // Alumno (portal)
 import StudentHomePage from "../pages/student/StudentHomePage.jsx";
 import StudentEnrollmentPage from "../pages/student/StudentEnrollmentPage.jsx";
-import StudentCoursesPage from "../pages/student/StudentCoursesPage.jsx";
 import StudentEnrollmentValidationPage from "../pages/student/StudentEnrollmentValidationPage.jsx";
 import StudentSchedulePage from "../pages/student/StudentSchedulePage.jsx";
 import StudentProfilePage from "../pages/student/StudentProfilePage.jsx";
@@ -113,7 +112,10 @@ export default function AppRouter() {
             <Route path="/student" element={<Navigate to="/student/home" replace />} />
             <Route path="/student/home" element={<StudentHomePage />} />
             <Route path="/student/enrollment" element={<StudentEnrollmentPage />} />
-            <Route path="/student/courses" element={<StudentCoursesPage />} />
+            <Route
+              path="/student/courses"
+              element={<Navigate to="/student/enrollment-validation" replace />}
+            />
             <Route
               path="/student/enrollment-validation"
               element={<StudentEnrollmentValidationPage />}

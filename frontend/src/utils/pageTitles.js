@@ -23,7 +23,6 @@ export const PAGE_TITLES = {
 
   "/student/home": "Inicio alumno",
   "/student/enrollment": "Mi matrícula",
-  "/student/courses": "Cursos disponibles",
   "/student/enrollment-validation": "Validación de matrícula",
   "/student/schedule": "Mi horario",
   "/student/profile": "Mi perfil académico",
