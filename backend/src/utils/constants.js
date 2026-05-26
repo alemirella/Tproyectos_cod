@@ -9,6 +9,12 @@ export const DAYS = [
   "SUNDAY",
 ];
 export const CLASSROOM_TYPES = ["STANDARD", "LAB", "COMPUTER_ROOM"];
+export const CLASSROOM_STATUSES = [
+  "AVAILABLE",
+  "IN_USE",
+  "MAINTENANCE",
+  "INACTIVE",
+];
 export const ENROLLMENT_STATUS = ["DRAFT", "VALID", "INVALID", "CONFIRMED"];
 export const SCHEDULE_STATUS = ["GENERATED", "PARTIAL", "FAILED"];
 

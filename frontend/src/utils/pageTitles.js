@@ -3,7 +3,7 @@ export const PAGE_TITLES = {
   "/users": "Gestión de usuarios",
   "/courses": "Gestión de cursos",
   "/teachers": "Gestión de docentes",
-  "/classrooms": "Aulas",
+  "/classrooms": "Gestión de aulas",
   "/students": "Estudiantes",
   "/timeslots": "Franjas horarias",
   "/enrollments": "Matrícula",

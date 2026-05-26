@@ -29,7 +29,14 @@ function normalizePayload(data) {
   return payload;
 }
 
-const populateOpts = { path: "availableCourses", select: "code name active" };
+/**
+ * Populamos los datos del curso que el portal docente necesita renderizar
+ * (créditos y tipo de aula requerido) además de los administrativos.
+ */
+const populateOpts = {
+  path: "availableCourses",
+  select: "code name credits classroomTypeRequired active",
+};
 
 export const teacherService = {
   list: (params = {}) =>
