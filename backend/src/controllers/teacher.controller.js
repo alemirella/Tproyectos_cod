@@ -13,6 +13,29 @@ export const getTeacher = asyncHandler(async (req, res) => {
   ok(res, item);
 });
 
+/** Devuelve el perfil docente del usuario autenticado. */
+export const getMyTeacher = asyncHandler(async (req, res) => {
+  const item = await teacherService.getByUserId(req.user._id);
+  if (!item) {
+    return fail(
+      res,
+      "No hay un perfil docente vinculado a tu usuario. Contacta al administrador.",
+      404
+    );
+  }
+  ok(res, item);
+});
+
+export const updateMyAvailability = asyncHandler(async (req, res) => {
+  const teacher = await teacherService.getByUserId(req.user._id);
+  if (!teacher) return fail(res, "Perfil docente no encontrado", 404);
+  const updated = await teacherService.updateAvailability(
+    teacher._id,
+    req.body.availability || []
+  );
+  ok(res, updated);
+});
+
 export const createTeacher = asyncHandler(async (req, res) => {
   try {
     const item = await teacherService.create(req.body);

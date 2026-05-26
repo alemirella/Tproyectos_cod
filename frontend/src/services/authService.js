@@ -1,4 +1,4 @@
-import { api, getData } from "../config/api.js";
+import { api, getData, TOKEN_KEY } from "../config/api.js";
 
 export const authService = {
   login: async (email, password) => {
@@ -8,7 +8,16 @@ export const authService = {
 
   getMe: () => api.get("/auth/me").then(getData),
 
+  /** Edita el propio nombre/correo. */
+  updateMyProfile: (data) => api.put("/auth/me", data).then(getData),
+
+  /** Cambia la propia contraseña. */
+  changeMyPassword: (currentPassword, newPassword) =>
+    api
+      .put("/auth/me/password", { currentPassword, newPassword })
+      .then(getData),
+
   logout: () => {
-    localStorage.removeItem("sgoha_token");
+    localStorage.removeItem(TOKEN_KEY);
   },
 };

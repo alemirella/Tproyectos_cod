@@ -1,4 +1,5 @@
 import Teacher from "../models/Teacher.js";
+import User from "../models/User.js";
 
 function buildListQuery({ search, active }) {
   const query = {};
@@ -39,8 +40,30 @@ export const teacherService = {
   getById: (id) => Teacher.findById(id).populate(populateOpts),
 
   create: async (data) => {
-    const created = await Teacher.create(normalizePayload(data));
+    const payload = normalizePayload(data);
+    if (!payload.user && payload.email) {
+      const linkedUser = await User.findOne({
+        email: payload.email,
+        role: "TEACHER",
+      });
+      if (linkedUser) payload.user = linkedUser._id;
+    }
+    const created = await Teacher.create(payload);
     return Teacher.findById(created._id).populate(populateOpts);
+  },
+
+  /** Resuelve el perfil docente vinculado a un usuario autenticado. */
+  getByUserId: async (userId) => {
+    let teacher = await Teacher.findOne({ user: userId }).populate(populateOpts);
+    if (teacher) return teacher;
+    const userDoc = await User.findById(userId);
+    if (!userDoc) return null;
+    teacher = await Teacher.findOne({ email: userDoc.email }).populate(populateOpts);
+    if (teacher && !teacher.user) {
+      teacher.user = userId;
+      await teacher.save();
+    }
+    return teacher;
   },
 
   update: (id, data) =>

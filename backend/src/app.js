@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 
 import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import teacherRoutes from "./routes/teacher.routes.js";
 import classroomRoutes from "./routes/classroom.routes.js";
@@ -32,6 +33,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/classrooms", classroomRoutes);

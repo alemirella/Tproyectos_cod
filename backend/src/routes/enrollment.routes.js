@@ -6,9 +6,23 @@ import {
   updateEnrollment,
   validateEnrollment,
   confirmEnrollment,
+  getMyEnrollment,
+  saveMyEnrollment,
+  validateMyEnrollment,
 } from "../controllers/enrollment.controller.js";
+import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
+router.get("/me", protect, authorizeRoles("STUDENT"), getMyEnrollment);
+router.put("/me", protect, authorizeRoles("STUDENT"), saveMyEnrollment);
+router.post(
+  "/me/validate",
+  protect,
+  authorizeRoles("STUDENT"),
+  validateMyEnrollment
+);
+
 router.get("/", listEnrollments);
 router.post("/validate", validateEnrollment);
 router.get("/:id", getEnrollment);

@@ -138,3 +138,36 @@ body {
     min-height: 2.35rem;
   }
 }
+
+/* Grilla semanal de horarios (compartida docente y alumno). */
+.weekly-grid {
+  display: grid;
+  grid-template-columns: minmax(7rem, 8.5rem) repeat(7, minmax(8rem, 1fr));
+  gap: 0.25rem;
+  min-width: 64rem;
+}
+
+.weekly-grid-corner {
+  background: #fff;
+}
+
+.weekly-grid-day {
+  padding: 0.5rem 0;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+}
+
+.weekly-grid-time {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: #fff;
+}
+
+.weekly-grid-cell {
+  min-height: 4rem;
+  padding: 0.25rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px dashed #e2e8f0;
+}

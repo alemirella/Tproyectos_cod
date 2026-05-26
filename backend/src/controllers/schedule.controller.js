@@ -1,6 +1,8 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ok, fail } from "../utils/apiResponse.js";
 import { scheduleService } from "../services/schedule.service.js";
+import { teacherService } from "../services/teacher.service.js";
+import { studentService } from "../services/student.service.js";
 
 export const generateSchedule = asyncHandler(async (req, res) => {
   const schedule = await scheduleService.generate(req.body.period);
@@ -28,3 +30,17 @@ export const scheduleByTeacher = asyncHandler(async (req, res) =>
 export const scheduleByClassroom = asyncHandler(async (req, res) =>
   ok(res, await scheduleService.byClassroom(req.params.classroomId))
 );
+
+/** Horario del docente autenticado. */
+export const myTeacherSchedule = asyncHandler(async (req, res) => {
+  const teacher = await teacherService.getByUserId(req.user._id);
+  if (!teacher) return ok(res, []);
+  ok(res, await scheduleService.byTeacher(teacher._id));
+});
+
+/** Horario del alumno autenticado. */
+export const myStudentSchedule = asyncHandler(async (req, res) => {
+  const student = await studentService.getByUserId(req.user._id);
+  if (!student) return ok(res, []);
+  ok(res, await scheduleService.byStudent(student._id));
+});

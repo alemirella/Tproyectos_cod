@@ -82,6 +82,36 @@ export const enrollmentService = {
   getById: (id) =>
     Enrollment.findById(id).populate("student").populate("courses"),
 
+  /** Última matrícula del estudiante. */
+  getLatestByStudent: (studentId) =>
+    Enrollment.findOne({ student: studentId })
+      .populate("courses")
+      .sort({ createdAt: -1 }),
+
+  upsertDraft: async ({ studentId, courseIds }) => {
+    const validation = await validateEnrollmentPayload({ studentId, courseIds });
+    const existing = await Enrollment.findOne({ student: studentId }).sort({
+      createdAt: -1,
+    });
+
+    if (existing && existing.status !== "CONFIRMED") {
+      existing.courses = courseIds;
+      existing.totalCredits = validation.totalCredits;
+      existing.status = validation.status;
+      existing.validationMessages = validation.messages;
+      await existing.save();
+      return existing;
+    }
+
+    return Enrollment.create({
+      student: studentId,
+      courses: courseIds,
+      totalCredits: validation.totalCredits,
+      status: validation.status,
+      validationMessages: validation.messages,
+    });
+  },
+
   create: async ({ studentId, courseIds }) => {
     const validation = await validateEnrollmentPayload({ studentId, courseIds });
     return Enrollment.create({

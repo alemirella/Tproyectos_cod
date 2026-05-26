@@ -1,12 +1,12 @@
-/** Ruta de inicio según rol tras login */
+/** Ruta de inicio según rol tras login. */
 export function getHomePathForRole(role) {
   switch (role) {
     case "ADMIN":
       return "/dashboard";
     case "TEACHER":
-      return "/teacher/availability";
+      return "/teacher/home";
     case "STUDENT":
-      return "/student/enrollment";
+      return "/student/home";
     default:
       return "/login";
   }
