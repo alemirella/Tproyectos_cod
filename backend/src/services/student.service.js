@@ -1,6 +1,10 @@
 import Student from "../models/Student.js";
 import User from "../models/User.js";
 import { STUDENT_ENROLLMENT_STATUSES } from "../utils/constants.js";
+import {
+  ensureUserAccount,
+  syncUserFromProfile,
+} from "./accountProvision.service.js";
 
 function buildListQuery({ search, active, enrollmentStatus, program }) {
   const query = {};
@@ -66,32 +70,75 @@ export const studentService = {
 
   getById: (id) => Student.findById(id).populate(populateOpts),
 
+  /**
+   * Crea el estudiante y garantiza la existencia de la cuenta `User`
+   * vinculada (rol `STUDENT`). Si la cuenta no existe se crea con una
+   * contraseña inicial igual al código del alumno; el admin podrá
+   * resetearla luego desde el módulo Usuarios.
+   *
+   * Devuelve `{ student, account }` donde `account` describe si la cuenta
+   * fue auto-creada y la contraseña inicial generada.
+   */
   create: async (data) => {
     const payload = normalizePayload(data);
+    let account = null;
+
     if (!payload.user && payload.email) {
-      const linkedUser = await User.findOne({
+      account = await ensureUserAccount({
         email: payload.email,
+        name: payload.fullName,
         role: "STUDENT",
+        passwordSeed: payload.code,
       });
-      if (linkedUser) payload.user = linkedUser._id;
+      if (account.user) payload.user = account.user._id;
     }
+
     const created = await Student.create(payload);
-    return Student.findById(created._id).populate(populateOpts);
+    const populated = await Student.findById(created._id).populate(
+      populateOpts
+    );
+    return {
+      student: populated,
+      account: account
+        ? {
+            created: account.created,
+            initialPassword: account.initialPassword,
+            conflictRole: account.conflictRole,
+            linkedUserId: account.user?._id || null,
+          }
+        : null,
+    };
   },
 
-  update: (id, data) =>
-    Student.findByIdAndUpdate(id, normalizePayload(data), {
+  update: async (id, data) => {
+    const payload = normalizePayload(data);
+    const updated = await Student.findByIdAndUpdate(id, payload, {
       new: true,
       runValidators: true,
-    }).populate(populateOpts),
+    }).populate(populateOpts);
+    if (!updated) return null;
+    // Mantenemos el User vinculado en sincronía si cambió nombre o email.
+    if (updated.user && (payload.fullName || payload.email)) {
+      await syncUserFromProfile(updated.user, {
+        name: payload.fullName,
+        email: payload.email,
+      });
+    }
+    return updated;
+  },
 
-  /** Eliminación lógica: desactiva el estudiante. */
-  remove: (id) =>
-    Student.findByIdAndUpdate(
-      id,
-      { active: false },
-      { new: true, runValidators: true }
-    ).populate(populateOpts),
+  /**
+   * Eliminación física: borra el estudiante de la base de datos y también
+   * elimina la cuenta `User` vinculada para no dejar accesos huérfanos.
+   */
+  remove: async (id) => {
+    const deleted = await Student.findByIdAndDelete(id);
+    if (!deleted) return null;
+    if (deleted.user) {
+      await User.findByIdAndDelete(deleted.user);
+    }
+    return deleted;
+  },
 
   updateApprovedCourses: (id, approvedCourses) => {
     const list = (approvedCourses || []).filter(Boolean);

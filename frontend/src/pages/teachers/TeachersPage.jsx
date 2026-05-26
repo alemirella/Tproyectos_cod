@@ -11,6 +11,7 @@ import {
 import Card from "../../components/ui/Card.jsx";
 import Badge from "../../components/ui/Badge.jsx";
 import Modal from "../../components/ui/Modal.jsx";
+import InitialCredentialsModal from "../../components/ui/InitialCredentialsModal.jsx";
 import TeacherForm, { TEACHER_FORM_ID } from "../../components/forms/TeacherForm.jsx";
 import { teacherService } from "../../services/teacherService.js";
 import { courseService } from "../../services/courseService.js";
@@ -33,6 +34,7 @@ export default function TeachersPage() {
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [focusAvailability, setFocusAvailability] = useState(false);
   const [toast, setToast] = useState(null);
+  const [credentialsInfo, setCredentialsInfo] = useState(null);
 
   const loadTeachers = useCallback(async () => {
     setLoading(true);
@@ -121,8 +123,37 @@ export default function TeachersPage() {
         );
         showToast("Docente actualizado correctamente.");
       } else {
-        await teacherService.createTeacher(payload);
-        showToast("Docente registrado correctamente.");
+        const created = await teacherService.createTeacher(payload);
+        const account = created?._account;
+        if (account?.conflictRole) {
+          showToast(
+            "Docente registrado, pero el correo ya pertenecía a otro rol.",
+            "error"
+          );
+          setCredentialsInfo({
+            email: payload.email,
+            conflictRole: account.conflictRole,
+          });
+        } else if (account?.created && account?.initialPassword) {
+          showToast("Docente registrado. Se generó su cuenta de acceso.");
+          setCredentialsInfo({
+            wasCreated: true,
+            credentials: {
+              email: payload.email,
+              password: account.initialPassword,
+            },
+          });
+        } else if (account && !account.created) {
+          showToast(
+            "Docente registrado y vinculado a una cuenta existente."
+          );
+          setCredentialsInfo({
+            linkedExisting: true,
+            email: payload.email,
+          });
+        } else {
+          showToast("Docente registrado correctamente.");
+        }
       }
       closeModal();
       loadTeachers();
@@ -318,6 +349,11 @@ export default function TeachersPage() {
           hideActions
         />
       </Modal>
+
+      <InitialCredentialsModal
+        data={credentialsInfo}
+        onClose={() => setCredentialsInfo(null)}
+      />
     </div>
   );
 }

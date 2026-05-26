@@ -9,6 +9,7 @@ import {
   getMyEnrollment,
   saveMyEnrollment,
   validateMyEnrollment,
+  confirmMyEnrollment,
 } from "../controllers/enrollment.controller.js";
 import { protect, authorizeRoles } from "../middlewares/auth.middleware.js";
 
@@ -21,6 +22,12 @@ router.post(
   protect,
   authorizeRoles("STUDENT"),
   validateMyEnrollment
+);
+router.post(
+  "/me/confirm",
+  protect,
+  authorizeRoles("STUDENT"),
+  confirmMyEnrollment
 );
 
 router.get("/", listEnrollments);

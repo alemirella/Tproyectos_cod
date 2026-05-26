@@ -1,200 +1,342 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ShieldCheck,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  ArrowLeft,
+  ClipboardCheck,
+  GraduationCap,
+  BookOpenCheck,
 } from "lucide-react";
 import PageHeader from "../../components/ui/PageHeader.jsx";
 import Card from "../../components/ui/Card.jsx";
-import Badge from "../../components/ui/Badge.jsx";
+import StepIndicator from "../../components/enrollment/StepIndicator.jsx";
+import StudentInfoCard from "../../components/enrollment/StudentInfoCard.jsx";
+import CourseSelectionTable from "../../components/enrollment/CourseSelectionTable.jsx";
+import ValidationResults from "../../components/enrollment/ValidationResults.jsx";
+import EnrollmentSummary from "../../components/enrollment/EnrollmentSummary.jsx";
 import { studentPortalService } from "../../services/studentPortalService.js";
+import { courseService } from "../../services/courseService.js";
 import {
   MIN_CREDITS,
   MAX_CREDITS,
-  ENROLLMENT_STATUS_LABEL,
-  ENROLLMENT_STATUS_BADGE,
 } from "../../utils/enrollmentConstants.js";
 
+const STEPS = [
+  { id: "student", label: "Estudiante" },
+  { id: "courses", label: "Cursos" },
+  { id: "validation", label: "Validación" },
+];
+
+/**
+ * Pantalla unificada de Validación de matrícula para el rol STUDENT.
+ *
+ * Reusa los endpoints existentes:
+ *   GET    /enrollments/me               → estudiante + matrícula actual
+ *   PUT    /enrollments/me               → guarda selección (DRAFT/VALID)
+ *   POST   /enrollments/me/validate      → valida sin guardar
+ *   POST   /enrollments/me/confirm       → confirma si es válida
+ *
+ * El flujo se presenta como pasos (Estudiante → Cursos → Validación) con un
+ * resumen lateral persistente que muestra créditos, rango permitido y
+ * acciones (Validar / Confirmar / Limpiar).
+ */
 export default function StudentEnrollmentValidationPage() {
-  const [result, setResult] = useState(null);
+  const [student, setStudent] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
+  const [allCourses, setAllCourses] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [validation, setValidation] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [courses, setCourses] = useState([]);
+  const [validating, setValidating] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState(null);
+
+  const showToast = useCallback((text, type = "success") => {
+    setToast({ text, type });
+    setTimeout(() => setToast(null), 3500);
+  }, []);
+
+  const refreshEnrollment = useCallback(async () => {
+    const bundle = await studentPortalService.getMyEnrollment();
+    setStudent(bundle?.student || null);
+    setEnrollment(bundle?.enrollment || null);
+    return bundle;
+  }, []);
 
   useEffect(() => {
-    async function run() {
+    async function bootstrap() {
       try {
-        const bundle = await studentPortalService.getMyEnrollment();
-        const courseIds = (bundle?.enrollment?.courses || []).map((c) =>
+        const [bundle, catalog] = await Promise.all([
+          studentPortalService.getMyEnrollment().catch(() => null),
+          courseService
+            .getCourses({ active: "true" })
+            .catch(() => []),
+        ]);
+        const initialStudent = bundle?.student || null;
+        const initialEnrollment = bundle?.enrollment || null;
+        setStudent(initialStudent);
+        setEnrollment(initialEnrollment);
+        setAllCourses(Array.isArray(catalog) ? catalog : []);
+        const initialIds = (initialEnrollment?.courses || []).map((c) =>
           String(c._id)
         );
-        setCourses(bundle?.enrollment?.courses || []);
-        if (courseIds.length === 0) {
-          setResult({
-            status: "INVALID",
-            valid: false,
-            totalCredits: 0,
-            messages: ["Aún no has seleccionado cursos."],
-          });
-        } else {
-          const r =
-            await studentPortalService.validateMySelection(courseIds);
-          setResult(r);
+        setSelectedIds(initialIds);
+        if (initialIds.length > 0) {
+          try {
+            const r =
+              await studentPortalService.validateMySelection(initialIds);
+            setValidation(r);
+          } catch {
+            setValidation(null);
+          }
         }
       } catch {
-        setResult(null);
+        showToast("No se pudo cargar la información de matrícula.", "error");
       } finally {
         setLoading(false);
       }
     }
-    run();
-  }, []);
+    bootstrap();
+  }, [showToast]);
 
-  const status = result?.status || "INVALID";
-  const statusLabel = ENROLLMENT_STATUS_LABEL[status] || status;
-  const statusVariant = ENROLLMENT_STATUS_BADGE[status] || "neutral";
+  const approvedSet = useMemo(() => {
+    const ids = (student?.approvedCourses || []).map((c) =>
+      typeof c === "object" ? String(c._id) : String(c)
+    );
+    return new Set(ids);
+  }, [student]);
+
+  const selectedSet = useMemo(
+    () => new Set(selectedIds.map(String)),
+    [selectedIds]
+  );
+
+  const courseMap = useMemo(() => {
+    const map = new Map();
+    for (const c of allCourses) map.set(String(c._id), c);
+    return map;
+  }, [allCourses]);
+
+  const selectedCourses = useMemo(
+    () =>
+      selectedIds
+        .map((id) => courseMap.get(String(id)))
+        .filter(Boolean),
+    [selectedIds, courseMap]
+  );
+
+  const totalCredits = useMemo(
+    () => selectedCourses.reduce((sum, c) => sum + (c.credits || 0), 0),
+    [selectedCourses]
+  );
+
+  function toggleCourse(courseId) {
+    const id = String(courseId);
+    setSelectedIds((prev) =>
+      prev.map(String).includes(id)
+        ? prev.filter((p) => String(p) !== id)
+        : [...prev, id]
+    );
+    // Cualquier cambio invalida el último resultado oficial.
+    setValidation(null);
+  }
+
+  async function handleValidate() {
+    if (!selectedIds.length) return;
+    setValidating(true);
+    try {
+      setSaving(true);
+      await studentPortalService.saveMySelection(selectedIds);
+      const result = await studentPortalService.validateMySelection(
+        selectedIds
+      );
+      setValidation(result);
+      await refreshEnrollment();
+      if (result.valid) {
+        showToast("Selección válida. Puedes confirmar tu matrícula.");
+      } else {
+        showToast("Aún no es válida. Revisa los mensajes.", "error");
+      }
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message || "No se pudo validar tu selección.";
+      showToast(msg, "error");
+    } finally {
+      setValidating(false);
+      setSaving(false);
+    }
+  }
+
+  async function handleConfirm() {
+    if (!validation?.valid) return;
+    setConfirming(true);
+    try {
+      await studentPortalService.confirmMyEnrollment();
+      await refreshEnrollment();
+      showToast("Matrícula confirmada correctamente.");
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message || "No se pudo confirmar la matrícula.";
+      showToast(msg, "error");
+    } finally {
+      setConfirming(false);
+    }
+  }
+
+  async function handleClear() {
+    if (!selectedIds.length) return;
+    if (!window.confirm("¿Limpiar tu selección actual?")) return;
+    setSaving(true);
+    try {
+      setSelectedIds([]);
+      setValidation(null);
+      await studentPortalService.saveMySelection([]);
+      await refreshEnrollment();
+      showToast("Selección limpiada.");
+    } catch {
+      showToast("No se pudo limpiar la selección.", "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const enrollmentStatus = enrollment?.status;
+  const isConfirmed = enrollmentStatus === "CONFIRMED";
+  const canConfirm =
+    Boolean(validation?.valid) &&
+    !isConfirmed &&
+    totalCredits >= MIN_CREDITS &&
+    totalCredits <= MAX_CREDITS;
+
+  // Avance de pasos:
+  //  - Paso 1 completado siempre que haya estudiante autenticado.
+  //  - Paso 2 completado cuando ya seleccionó al menos un curso.
+  //  - Paso 3 completado cuando la validación oficial sea VÁLIDA.
+  const completed = [
+    Boolean(student),
+    selectedIds.length > 0,
+    Boolean(validation?.valid),
+  ];
+  const current = !student ? 0 : selectedIds.length === 0 ? 1 : 2;
 
   return (
     <div className="space-y-6">
+      {toast && (
+        <div
+          className={`fixed left-4 right-4 top-[4.25rem] z-[60] rounded-lg px-4 py-3 text-center text-sm font-medium shadow-lg sm:left-auto sm:right-6 sm:top-20 sm:max-w-sm sm:text-left ${
+            toast.type === "error"
+              ? "bg-red-600 text-white"
+              : "bg-green-600 text-white"
+          }`}
+        >
+          {toast.text}
+        </div>
+      )}
+
       <PageHeader
         title="Validación de matrícula"
-        subtitle="Revisa si tus cursos cumplen prerrequisitos y créditos."
-      >
-        <Link
-          to="/student/enrollment"
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver a mi matrícula
-        </Link>
-      </PageHeader>
+        subtitle="Selecciona cursos y verifica prerrequisitos y límite de créditos."
+      />
+
+      <Card className="p-4 sm:p-5">
+        <StepIndicator
+          steps={STEPS}
+          current={current}
+          completed={completed}
+        />
+      </Card>
 
       {loading ? (
         <div className="flex min-h-[40vh] items-center justify-center text-slate-500">
-          Validando matrícula...
+          Cargando información de matrícula...
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-4">
-            <StatusBanner result={result} />
-            <Card className="p-5 sm:p-6">
-              <h3 className="text-base font-semibold text-slate-900">
-                Detalle de validación
-              </h3>
-              <ul className="mt-4 space-y-2">
-                {(result?.messages?.length ? result.messages : [
-                  "Sin mensajes de validación.",
-                ]).map((m, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-700"
-                  >
-                    {result?.valid ? (
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
-                    ) : (
-                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                    )}
-                    <span>{m}</span>
-                  </li>
-                ))}
-              </ul>
-            </Card>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-5">
+            <StepCard
+              icon={GraduationCap}
+              step={1}
+              title="Identificación del estudiante"
+            >
+              <StudentInfoCard student={student} />
+            </StepCard>
 
-            {courses.length > 0 && (
-              <Card className="overflow-hidden">
-                <div className="border-b border-slate-100 px-5 py-3">
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    Cursos en validación
-                  </h3>
+            <StepCard
+              icon={BookOpenCheck}
+              step={2}
+              title="Selección de asignaturas"
+              subtitle={
+                isConfirmed
+                  ? "Tu matrícula ya está confirmada. La selección no se puede modificar."
+                  : "Agrega o quita cursos para construir tu matrícula del periodo."
+              }
+            >
+              {isConfirmed ? (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                  Esta matrícula ya fue confirmada y no admite cambios.
                 </div>
-                <div className="divide-y divide-slate-100">
-                  {courses.map((c) => (
-                    <div
-                      key={c._id}
-                      className="flex items-center justify-between gap-3 px-5 py-3 text-sm"
-                    >
-                      <div>
-                        <p className="font-semibold text-sgoha-primary">
-                          {c.code}
-                        </p>
-                        <p className="text-slate-700">{c.name}</p>
-                      </div>
-                      <span className="text-xs text-slate-500">
-                        {c.credits} créditos
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            )}
+              ) : (
+                <CourseSelectionTable
+                  courses={allCourses}
+                  approvedSet={approvedSet}
+                  selectedSet={selectedSet}
+                  isNewStudent={student?.isNewStudent === true}
+                  onToggle={toggleCourse}
+                  search={search}
+                  onSearchChange={setSearch}
+                />
+              )}
+            </StepCard>
+
+            <StepCard
+              icon={ClipboardCheck}
+              step={3}
+              title="Resultado de validaciones"
+              subtitle="Resumen de prerrequisitos, créditos y disponibilidad."
+            >
+              <ValidationResults
+                validation={validation}
+                totalCredits={totalCredits}
+              />
+            </StepCard>
           </div>
 
-          <div className="space-y-4">
-            <Card className="p-5">
-              <div className="flex items-center gap-3">
-                <span
-                  className={`flex h-12 w-12 items-center justify-center rounded-xl ${
-                    result?.valid
-                      ? "bg-green-50 text-green-600"
-                      : "bg-amber-50 text-amber-600"
-                  }`}
-                >
-                  <ShieldCheck className="h-6 w-6" />
-                </span>
-                <div>
-                  <p className="text-sm text-slate-500">Estado</p>
-                  <Badge variant={statusVariant}>{statusLabel}</Badge>
-                </div>
-              </div>
-              <dl className="mt-4 space-y-2 text-sm">
-                <Row label="Créditos seleccionados" value={result?.totalCredits ?? 0} />
-                <Row label="Mínimo permitido" value={MIN_CREDITS} />
-                <Row label="Máximo permitido" value={MAX_CREDITS} />
-              </dl>
-            </Card>
-          </div>
+          <EnrollmentSummary
+            selectedCourses={selectedCourses}
+            totalCredits={totalCredits}
+            validation={validation}
+            enrollmentStatus={enrollmentStatus}
+            canConfirm={canConfirm}
+            onValidate={handleValidate}
+            onConfirm={handleConfirm}
+            onClear={handleClear}
+            validating={validating}
+            confirming={confirming}
+            saving={saving}
+          />
         </div>
       )}
     </div>
   );
 }
 
-function StatusBanner({ result }) {
-  if (!result) return null;
-  if (result.valid) {
-    return (
-      <Card className="flex items-start gap-3 border-green-200 bg-green-50 p-4 text-green-800">
-        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
-        <div>
-          <p className="text-sm font-semibold">Matrícula válida</p>
-          <p className="mt-1 text-sm">
-            Cumples prerrequisitos y rango de créditos. Tu matrícula está lista
-            para confirmar.
+function StepCard({ icon: Icon, step, title, subtitle, children }) {
+  return (
+    <Card className="overflow-hidden">
+      <header className="flex items-start gap-3 border-b border-slate-100 px-5 py-4">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-sgoha-primary">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            Paso {step}
           </p>
+          <h2 className="text-base font-semibold text-slate-900">{title}</h2>
+          {subtitle && (
+            <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+          )}
         </div>
-      </Card>
-    );
-  }
-  return (
-    <Card className="flex items-start gap-3 border-amber-200 bg-amber-50 p-4 text-amber-900">
-      <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-      <div>
-        <p className="text-sm font-semibold">Aún no es válida</p>
-        <p className="mt-1 text-sm">
-          Revisa los mensajes para corregir tu selección y volver a validar.
-        </p>
-      </div>
+      </header>
+      <div className="p-5">{children}</div>
     </Card>
-  );
-}
-
-function Row({ label, value }) {
-  return (
-    <div className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2">
-      <dt className="text-slate-500">{label}</dt>
-      <dd className="font-semibold text-slate-900">{value}</dd>
-    </div>
   );
 }

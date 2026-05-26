@@ -37,8 +37,13 @@ export const getMyStudent = asyncHandler(async (req, res) => {
 
 export const createStudent = asyncHandler(async (req, res) => {
   try {
-    const item = await studentService.create(req.body);
-    ok(res, item, 201);
+    const { student, account } = await studentService.create(req.body);
+    // Se adjunta `_account` con la metadata de la cuenta auto-provisionada
+    // (contraseña inicial visible solo en la respuesta de creación) para
+    // que el admin pueda comunicarla al estudiante.
+    const payload = student.toObject();
+    if (account) payload._account = account;
+    ok(res, payload, 201);
   } catch (error) {
     const dup = handleDuplicate(error, res);
     if (dup) return dup;

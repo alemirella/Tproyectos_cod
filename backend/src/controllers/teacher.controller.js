@@ -38,8 +38,10 @@ export const updateMyAvailability = asyncHandler(async (req, res) => {
 
 export const createTeacher = asyncHandler(async (req, res) => {
   try {
-    const item = await teacherService.create(req.body);
-    ok(res, item, 201);
+    const { teacher, account } = await teacherService.create(req.body);
+    const payload = teacher.toObject();
+    if (account) payload._account = account;
+    ok(res, payload, 201);
   } catch (error) {
     if (error.code === 11000) {
       return fail(res, "El correo institucional ya está registrado", 409);

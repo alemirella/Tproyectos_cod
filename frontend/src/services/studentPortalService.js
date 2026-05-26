@@ -15,6 +15,10 @@ export const studentPortalService = {
   validateMySelection: (courseIds) =>
     api.post("/enrollments/me/validate", { courseIds }).then(getData),
 
+  /** Confirma la matrícula previamente guardada y validada. */
+  confirmMyEnrollment: () =>
+    api.post("/enrollments/me/confirm").then(getData),
+
   getMySchedule: () => api.get("/schedules/me/student").then(getData),
 
   /** Resumen para la home. */

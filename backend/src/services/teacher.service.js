@@ -1,5 +1,9 @@
 import Teacher from "../models/Teacher.js";
 import User from "../models/User.js";
+import {
+  ensureUserAccount,
+  syncUserFromProfile,
+} from "./accountProvision.service.js";
 
 function buildListQuery({ search, active }) {
   const query = {};
@@ -46,17 +50,44 @@ export const teacherService = {
 
   getById: (id) => Teacher.findById(id).populate(populateOpts),
 
+  /**
+   * Crea el docente y garantiza la existencia de la cuenta `User` vinculada
+   * (rol `TEACHER`). Si la cuenta no existe se crea con una contraseña
+   * inicial derivada del prefijo del email; el admin podrá resetearla luego
+   * desde el módulo Usuarios.
+   *
+   * Devuelve `{ teacher, account }`.
+   */
   create: async (data) => {
     const payload = normalizePayload(data);
+    let account = null;
+
     if (!payload.user && payload.email) {
-      const linkedUser = await User.findOne({
+      const seed = payload.email.split("@")[0];
+      account = await ensureUserAccount({
         email: payload.email,
+        name: payload.fullName,
         role: "TEACHER",
+        passwordSeed: seed,
       });
-      if (linkedUser) payload.user = linkedUser._id;
+      if (account.user) payload.user = account.user._id;
     }
+
     const created = await Teacher.create(payload);
-    return Teacher.findById(created._id).populate(populateOpts);
+    const populated = await Teacher.findById(created._id).populate(
+      populateOpts
+    );
+    return {
+      teacher: populated,
+      account: account
+        ? {
+            created: account.created,
+            initialPassword: account.initialPassword,
+            conflictRole: account.conflictRole,
+            linkedUserId: account.user?._id || null,
+          }
+        : null,
+    };
   },
 
   /** Resuelve el perfil docente vinculado a un usuario autenticado. */
@@ -73,11 +104,21 @@ export const teacherService = {
     return teacher;
   },
 
-  update: (id, data) =>
-    Teacher.findByIdAndUpdate(id, normalizePayload(data), {
+  update: async (id, data) => {
+    const payload = normalizePayload(data);
+    const updated = await Teacher.findByIdAndUpdate(id, payload, {
       new: true,
       runValidators: true,
-    }).populate(populateOpts),
+    }).populate(populateOpts);
+    if (!updated) return null;
+    if (updated.user && (payload.fullName || payload.email)) {
+      await syncUserFromProfile(updated.user, {
+        name: payload.fullName,
+        email: payload.email,
+      });
+    }
+    return updated;
+  },
 
   /** Eliminación lógica */
   remove: (id) =>

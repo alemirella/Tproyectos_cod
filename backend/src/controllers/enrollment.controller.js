@@ -76,3 +76,17 @@ export const validateMyEnrollment = asyncHandler(async (req, res) => {
   });
   ok(res, result);
 });
+
+/** Confirma la última matrícula del alumno autenticado si es válida. */
+export const confirmMyEnrollment = asyncHandler(async (req, res) => {
+  const student = await studentService.getByUserId(req.user._id);
+  if (!student) return fail(res, "Perfil de alumno no vinculado", 404);
+  const latest = await enrollmentService.getLatestByStudent(student._id);
+  if (!latest) return fail(res, "No tienes una selección guardada", 404);
+  try {
+    const confirmed = await enrollmentService.confirm(latest._id);
+    ok(res, await enrollmentService.getById(confirmed._id));
+  } catch (e) {
+    fail(res, e.message, e.status || 400, e.details);
+  }
+});

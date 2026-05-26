@@ -27,6 +27,7 @@ import StatCard from "../../components/ui/StatCard.jsx";
 import StudentForm, {
   STUDENT_FORM_ID,
 } from "../../components/forms/StudentForm.jsx";
+import InitialCredentialsModal from "../../components/ui/InitialCredentialsModal.jsx";
 import { studentService } from "../../services/studentService.js";
 import { courseService } from "../../services/courseService.js";
 import {
@@ -64,6 +65,7 @@ export default function StudentsPage() {
   const [editing, setEditing] = useState(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [viewing, setViewing] = useState(null);
+  const [credentialsInfo, setCredentialsInfo] = useState(null);
 
   const [toast, setToast] = useState(null);
   const showToast = useCallback((text, type = "success") => {
@@ -161,12 +163,45 @@ export default function StudentsPage() {
       if (editing) {
         await studentService.updateStudent(editing._id, payload);
         showToast("Estudiante actualizado correctamente.");
+        setEditorOpen(false);
+        setEditing(null);
       } else {
-        await studentService.createStudent(payload);
-        showToast("Estudiante registrado correctamente.");
+        const created = await studentService.createStudent(payload);
+        const account = created?._account;
+        if (account?.conflictRole) {
+          showToast(
+            "Estudiante registrado, pero el correo ya pertenecía a otro rol.",
+            "error"
+          );
+          setCredentialsInfo({
+            email: payload.email,
+            conflictRole: account.conflictRole,
+          });
+        } else if (account?.created && account?.initialPassword) {
+          showToast(
+            "Estudiante registrado. Se generó su cuenta de acceso."
+          );
+          setCredentialsInfo({
+            wasCreated: true,
+            credentials: {
+              email: payload.email,
+              password: account.initialPassword,
+            },
+          });
+        } else if (account && !account.created) {
+          showToast(
+            "Estudiante registrado y vinculado a una cuenta existente."
+          );
+          setCredentialsInfo({
+            linkedExisting: true,
+            email: payload.email,
+          });
+        } else {
+          showToast("Estudiante registrado correctamente.");
+        }
+        setEditorOpen(false);
+        setEditing(null);
       }
-      setEditorOpen(false);
-      setEditing(null);
       load();
     } catch (e) {
       const msg =
@@ -180,16 +215,16 @@ export default function StudentsPage() {
   async function handleDelete(s) {
     if (
       !window.confirm(
-        `¿Desactivar al estudiante ${s.fullName}? Dejará de ser considerado en matrículas y horarios.`
+        `¿Eliminar al estudiante ${s.fullName}? Esta acción es permanente y también borrará su cuenta de acceso.`
       )
     )
       return;
     try {
       await studentService.deleteStudent(s._id);
-      showToast("Estudiante desactivado.");
+      showToast("Estudiante eliminado.");
       load();
     } catch {
-      showToast("No se pudo desactivar al estudiante.", "error");
+      showToast("No se pudo eliminar al estudiante.", "error");
     }
   }
 
@@ -439,6 +474,11 @@ export default function StudentsPage() {
         student={viewing}
         onClose={() => setViewing(null)}
       />
+
+      <InitialCredentialsModal
+        data={credentialsInfo}
+        onClose={() => setCredentialsInfo(null)}
+      />
     </div>
   );
 }
@@ -498,7 +538,7 @@ function StudentRow({ student, onView, onEdit, onDelete }) {
         <div className="flex justify-end gap-1">
           <IconBtn title="Ver historial" onClick={onView} icon={Eye} />
           <IconBtn title="Editar" onClick={onEdit} icon={Pencil} />
-          <IconBtn title="Desactivar" onClick={onDelete} icon={Trash2} danger />
+          <IconBtn title="Eliminar" onClick={onDelete} icon={Trash2} danger />
         </div>
       </td>
     </tr>
@@ -571,7 +611,7 @@ function StudentCard({ student, onView, onEdit, onDelete }) {
       <div className="flex flex-wrap gap-2 pt-1">
         <IconBtn title="Ver historial" onClick={onView} icon={Eye} />
         <IconBtn title="Editar" onClick={onEdit} icon={Pencil} />
-        <IconBtn title="Desactivar" onClick={onDelete} icon={Trash2} danger />
+        <IconBtn title="Eliminar" onClick={onDelete} icon={Trash2} danger />
       </div>
     </article>
   );

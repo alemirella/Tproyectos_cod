@@ -22,10 +22,15 @@ export async function validateEnrollmentPayload({ studentId, courseIds }) {
 
   const approvedSet = new Set(student.approvedCourses.map((c) => String(c._id)));
 
+  // Si es estudiante nuevo (primera matrícula), no se validan prerrequisitos
+  // ni se restringen los créditos previos. Ver Student.isNewStudent.
+  const skipPrereqs = student.isNewStudent === true;
+
   for (const course of courses) {
     if (approvedSet.has(String(course._id))) {
       messages.push(`Ya aprobó el curso ${course.code}`);
     }
+    if (skipPrereqs) continue;
     for (const pre of course.prerequisites || []) {
       if (!approvedSet.has(String(pre))) {
         const preCourse = await Course.findById(pre);
@@ -60,6 +65,11 @@ export async function validateEnrollmentPayload({ studentId, courseIds }) {
 
   if (status === "VALID" && totalCredits >= MIN_CREDITS && totalCredits <= MAX_CREDITS) {
     messages.push("Matrícula válida");
+    if (skipPrereqs) {
+      messages.push(
+        "Estudiante nuevo: prerrequisitos omitidos en la primera matrícula"
+      );
+    }
   }
 
   return {
