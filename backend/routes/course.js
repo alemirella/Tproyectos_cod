@@ -33,7 +33,11 @@ router.post("/", async (req, res) => {
 
     res.send(result);
   } catch (error) {
-    res.status(500).send(error);
+    console.error("POST /api/course:", error.message);
+    res.status(500).json({
+      message: "No se pudo guardar el curso",
+      detail: error.message,
+    });
   }
 });
 

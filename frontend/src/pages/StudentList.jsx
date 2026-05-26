@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { apiUrl } from "../config/api";
 
 export default function StudentList() {
   const [data, setData] = useState([]);
@@ -19,7 +20,7 @@ export default function StudentList() {
 
   const fetchStudents = () => {
     setLoading(true);
-    fetch("http://localhost:5050/student")
+    fetch(apiUrl("/student"))
       .then(res => res.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => { setError("Error al cargar los estudiantes"); setLoading(false); });
@@ -66,7 +67,7 @@ export default function StudentList() {
     }
 
     const payload = { code: code.toUpperCase(), name: name.trim(), email: email.trim() };
-    const url = editingId ? `http://localhost:5050/student/${editingId}` : "http://localhost:5050/student";
+    const url = editingId ? apiUrl(`/student/${editingId}`) : apiUrl("/student");
     const method = editingId ? "PATCH" : "POST";
 
     try {
@@ -102,7 +103,7 @@ export default function StudentList() {
   const handleDelete = async (id, studentName) => {
     if (!window.confirm(`¿Seguro que deseas dar de baja al estudiante ${studentName}?`)) return;
     try {
-      const res = await fetch(`http://localhost:5050/student/${id}`, { method: "DELETE" });
+      const res = await fetch(apiUrl(`/student/${id}`), { method: "DELETE" });
       if (res.ok) {
         setData(prev => prev.filter(s => s._id !== id));
         if (editingId === id) resetForm();

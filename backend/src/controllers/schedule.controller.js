@@ -1,0 +1,30 @@
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ok, fail } from "../utils/apiResponse.js";
+import { scheduleService } from "../services/schedule.service.js";
+
+export const generateSchedule = asyncHandler(async (req, res) => {
+  const schedule = await scheduleService.generate(req.body.period);
+  ok(res, schedule, 201);
+});
+
+export const listSchedules = asyncHandler(async (_req, res) =>
+  ok(res, await scheduleService.list())
+);
+
+export const getSchedule = asyncHandler(async (req, res) => {
+  const item = await scheduleService.getById(req.params.id);
+  if (!item) return fail(res, "Horario no encontrado", 404);
+  ok(res, item);
+});
+
+export const scheduleByStudent = asyncHandler(async (req, res) =>
+  ok(res, await scheduleService.byStudent(req.params.studentId))
+);
+
+export const scheduleByTeacher = asyncHandler(async (req, res) =>
+  ok(res, await scheduleService.byTeacher(req.params.teacherId))
+);
+
+export const scheduleByClassroom = asyncHandler(async (req, res) =>
+  ok(res, await scheduleService.byClassroom(req.params.classroomId))
+);

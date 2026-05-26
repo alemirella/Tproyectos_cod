@@ -1,16 +1,27 @@
-# React + Vite
+# Frontend SGOHA
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite con layout modular (sidebar, rutas protegidas, servicios axios).
 
-Currently, two official plugins are available:
+## Configuración
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+cp .env.example .env
+npm install
+npm run dev
+```
 
-## React Compiler
+`VITE_API_URL=http://localhost:5000/api`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Login (después de `npm run seed` en backend)
 
-## Expanding the ESLint configuration
+- Email: `admin@sgoha.local`
+- Contraseña: `admin123`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Estructura
+
+- `src/routes/AppRouter.jsx` — rutas principales
+- `src/pages/` — pantallas del PMV
+- `src/services/` — llamadas al API
+- `src/components/availability/AvailabilityGrid.jsx` — grilla docente
+
+Las páginas antiguas en `src/pages/CourseList.jsx` etc. quedan como referencia; el router usa las nuevas carpetas.

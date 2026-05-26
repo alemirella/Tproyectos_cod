@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiUrl } from "../config/api";
 
 export default function ScheduleGenerator() {
   const [schedule,   setSchedule]   = useState([]);
@@ -13,7 +14,7 @@ export default function ScheduleGenerator() {
     setError(null);
 
     try {
-      const res  = await fetch("http://localhost:5050/schedule/generate");
+      const res  = await fetch(apiUrl("/schedule/generate"));
       const data = await res.json();
 
       // El backend devuelve { schedule, totalAssigned, conflicts, unassigned,

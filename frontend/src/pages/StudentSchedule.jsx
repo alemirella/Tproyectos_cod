@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../config/api";
 
 export default function StudentSchedule() {
   const [data,    setData]    = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:5050/schedule")
+    fetch(apiUrl("/schedule"))
       .then(res => res.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => setLoading(false));

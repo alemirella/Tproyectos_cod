@@ -1,0 +1,63 @@
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ok, fail } from "../utils/apiResponse.js";
+import { teacherService } from "../services/teacher.service.js";
+
+export const listTeachers = asyncHandler(async (req, res) => {
+  const { search, active } = req.query;
+  ok(res, await teacherService.list({ search, active }));
+});
+
+export const getTeacher = asyncHandler(async (req, res) => {
+  const item = await teacherService.getById(req.params.id);
+  if (!item) return fail(res, "Docente no encontrado", 404);
+  ok(res, item);
+});
+
+export const createTeacher = asyncHandler(async (req, res) => {
+  try {
+    const item = await teacherService.create(req.body);
+    ok(res, item, 201);
+  } catch (error) {
+    if (error.code === 11000) {
+      return fail(res, "El correo institucional ya está registrado", 409);
+    }
+    throw error;
+  }
+});
+
+export const updateTeacher = asyncHandler(async (req, res) => {
+  try {
+    const item = await teacherService.update(req.params.id, req.body);
+    if (!item) return fail(res, "Docente no encontrado", 404);
+    ok(res, item);
+  } catch (error) {
+    if (error.code === 11000) {
+      return fail(res, "El correo institucional ya está registrado", 409);
+    }
+    throw error;
+  }
+});
+
+export const deleteTeacher = asyncHandler(async (req, res) => {
+  const item = await teacherService.remove(req.params.id);
+  if (!item) return fail(res, "Docente no encontrado", 404);
+  ok(res, { message: "Docente desactivado", teacher: item });
+});
+
+export const updateAvailability = asyncHandler(async (req, res) => {
+  const item = await teacherService.updateAvailability(
+    req.params.id,
+    req.body.availability || []
+  );
+  if (!item) return fail(res, "Docente no encontrado", 404);
+  ok(res, item);
+});
+
+export const updateTeacherCourses = asyncHandler(async (req, res) => {
+  const item = await teacherService.updateCourses(
+    req.params.id,
+    req.body.availableCourses || []
+  );
+  if (!item) return fail(res, "Docente no encontrado", 404);
+  ok(res, item);
+});

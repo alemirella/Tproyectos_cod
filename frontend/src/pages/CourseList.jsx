@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiUrl } from "../config/api";
 
 export default function CourseList() {
   const [courses, setCourses] = useState([]);
@@ -11,7 +12,7 @@ export default function CourseList() {
 
   const fetchCourses = () => {
     setLoading(true);
-    fetch("http://localhost:5050/course")
+    fetch(apiUrl("/course"))
       .then(res => res.json())
       .then(data => {
         setCourses(data);
@@ -24,7 +25,7 @@ export default function CourseList() {
   const handleDelete = async (id) => {
     if (!window.confirm("¿Eliminar curso?")) return;
 
-    await fetch(`http://localhost:5050/course/${id}`, {
+    await fetch(apiUrl(`/course/${id}`), {
       method: "DELETE",
     });
 
@@ -49,7 +50,7 @@ export default function CourseList() {
 
     const { _id, ...data } = editingCourse;
 
-    const response = await fetch(`http://localhost:5050/course/${_id}`, {
+    const response = await fetch(apiUrl(`/course/${_id}`), {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),

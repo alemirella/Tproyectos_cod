@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { apiUrl } from "../config/api";
 
 const DAYS   = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 const BLOCKS = ["8-10", "10-12", "14-16", "16-18"];
@@ -19,7 +20,7 @@ export default function TeacherForm() {
   // 🔥 CARGAR DATOS SI ES EDICIÓN
   useEffect(() => {
     if (isEdit) {
-      fetch("http://localhost:5050/teacher")
+      fetch(apiUrl("/teacher"))
         .then(res => res.json())
         .then(data => {
           const teacher = data.find(t => t._id === id);
@@ -84,7 +85,7 @@ export default function TeacherForm() {
 
     try {
       // 🔥 NUEVO: Verificar si el correo ya existe antes de guardar
-      const checkRes = await fetch("http://localhost:5050/teacher");
+      const checkRes = await fetch(apiUrl("/teacher"));
       const allTeachers = await checkRes.json();
       
       const emailInUse = allTeachers.some(t => 
@@ -98,8 +99,8 @@ export default function TeacherForm() {
 
       // Si pasa la validación, procedemos a guardar
       const url = isEdit
-        ? `http://localhost:5050/teacher/${id}`
-        : "http://localhost:5050/teacher";
+        ? apiUrl(`/teacher/${id}`)
+        : apiUrl("/teacher");
 
       const method = isEdit ? "PATCH" : "POST";
 

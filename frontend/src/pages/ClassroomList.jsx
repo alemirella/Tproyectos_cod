@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { apiUrl } from "../config/api";
 
 export default function ClassroomList() {
   const [data, setData] = useState([]);
@@ -21,7 +22,7 @@ export default function ClassroomList() {
 
   const fetchClassrooms = () => {
     setLoading(true);
-    fetch("http://localhost:5050/classroom")
+    fetch(apiUrl("/classroom"))
       .then(res => res.json())
       .then(d => { setData(d); setLoading(false); })
       .catch(() => { setError("Error al cargar las aulas"); setLoading(false); });
@@ -47,7 +48,7 @@ export default function ClassroomList() {
     setSuccess(null);
 
     const payload = { code: code.toUpperCase(), capacity: Number(capacity), type };
-    const url = editingId ? `http://localhost:5050/classroom/${editingId}` : "http://localhost:5050/classroom";
+    const url = editingId ? apiUrl(`/classroom/${editingId}`) : apiUrl("/classroom");
     const method = editingId ? "PATCH" : "POST";
 
     try {
@@ -73,7 +74,7 @@ export default function ClassroomList() {
 
   const handleDelete = async (id, codeStr) => {
     if (!window.confirm(`¿Eliminar aula ${codeStr}?`)) return;
-    await fetch(`http://localhost:5050/classroom/${id}`, { method: "DELETE" });
+    await fetch(apiUrl(`/classroom/${id}`), { method: "DELETE" });
     fetchClassrooms();
   };
 

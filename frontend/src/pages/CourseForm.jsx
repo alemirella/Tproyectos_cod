@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiUrl } from "../config/api";
 
 export default function CourseForm() {
   const [form, setForm] = useState({
@@ -55,7 +56,7 @@ export default function CourseForm() {
 
     if (!validate()) return;
 
-    await fetch("http://localhost:5050/course", {
+    const res = await fetch(apiUrl("/course"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -64,6 +65,14 @@ export default function CourseForm() {
         prerequisites: []
       }),
     });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      setErrors({
+        submit: err.detail || err.message || "No se pudo guardar el curso",
+      });
+      return;
+    }
 
     setSaved(true);
     setForm({ code: "", name: "", credits: "", classroomType: "" });
@@ -126,6 +135,12 @@ export default function CourseForm() {
           </div>
 
           <button type="submit">Guardar curso</button>
+
+          {errors.submit && (
+            <div className="alert alert-error" style={{ marginTop: "1rem" }}>
+              {errors.submit}
+            </div>
+          )}
 
           {saved && (
             <div className="alert alert-success">

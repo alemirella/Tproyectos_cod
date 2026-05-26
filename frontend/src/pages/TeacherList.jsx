@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiUrl } from "../config/api";
 
 const DAYS   = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 const BLOCKS = ["8-10", "10-12", "14-16", "16-18"];
@@ -12,7 +13,7 @@ export default function TeacherList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5050/teacher")
+    fetch(apiUrl("/teacher"))
       .then(res => res.json())
       .then(d => {
         setData(d);
@@ -23,7 +24,7 @@ export default function TeacherList() {
 
   async function remove(id) {
     try {
-      await fetch(`http://localhost:5050/teacher/${id}`, {
+      await fetch(apiUrl(`/teacher/${id}`), {
         method: "DELETE",
       });
 
