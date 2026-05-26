@@ -2,7 +2,6 @@ import { Outlet } from "react-router-dom";
 import {
   Home,
   ClipboardCheck,
-  BookOpen,
   ShieldCheck,
   Clock,
   UserRound,
@@ -15,7 +14,6 @@ import { useMobileNav } from "../hooks/useMobileNav.js";
 const studentNav = [
   { to: "/student/home", label: "Inicio", icon: Home, end: true },
   { to: "/student/enrollment", label: "Mi matrícula", icon: ClipboardCheck },
-  { to: "/student/courses", label: "Cursos disponibles", icon: BookOpen },
   {
     to: "/student/enrollment-validation",
     label: "Validación de matrícula",
