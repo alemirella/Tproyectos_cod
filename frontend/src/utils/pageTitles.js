@@ -4,7 +4,7 @@ export const PAGE_TITLES = {
   "/courses": "Gestión de cursos",
   "/teachers": "Gestión de docentes",
   "/classrooms": "Gestión de aulas",
-  "/students": "Estudiantes",
+  "/students": "Gestión de estudiantes",
   "/timeslots": "Franjas horarias",
   "/enrollments": "Matrícula",
   "/schedules/generate": "Generar horarios",
