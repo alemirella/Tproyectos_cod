@@ -3,6 +3,7 @@
  * Solo opera sobre franjas que pertenecen al catálogo oficial HORALV.
  */
 import { VALID_SLOT_KEYS, slotKey as buildSlotKey } from "../constants/timeBlocks.js";
+import { isScheduleEligibleEnrollment } from "../utils/scheduleEnrollment.js";
 
 function slotKey(timeSlot) {
   return buildSlotKey(timeSlot.day, timeSlot.startTime, timeSlot.endTime);
@@ -28,10 +29,10 @@ export function generateBasicSchedule({
   classrooms,
   timeSlots,
 }) {
-  const confirmed = enrollments.filter((e) => e.status === "CONFIRMED");
+  const eligible = enrollments.filter(isScheduleEligibleEnrollment);
   const courseStudents = new Map();
 
-  for (const enr of confirmed) {
+  for (const enr of eligible) {
     for (const course of enr.courses || []) {
       const id = String(course._id || course);
       if (!courseStudents.has(id)) courseStudents.set(id, new Set());
@@ -52,7 +53,7 @@ export function generateBasicSchedule({
   );
 
   for (const courseId of courseIds) {
-    const course = confirmed
+    const course = eligible
       .flatMap((e) => e.courses)
       .find((c) => String(c._id || c) === courseId);
     if (!course) continue;
@@ -70,7 +71,9 @@ export function generateBasicSchedule({
         const tk = `${teacher._id}|${sk}`;
         if (busyTeacher.has(tk)) continue;
 
-        for (const classroom of classrooms.filter((r) => r.active !== false)) {
+        for (const classroom of classrooms.filter(
+          (r) => r.active !== false && (r.status === "AVAILABLE" || !r.status)
+        )) {
           if (classroom.type !== course.classroomTypeRequired) continue;
           if (classroom.capacity < neededCapacity) continue;
 

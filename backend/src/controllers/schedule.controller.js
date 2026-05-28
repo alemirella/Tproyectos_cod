@@ -5,8 +5,17 @@ import { teacherService } from "../services/teacher.service.js";
 import { studentService } from "../services/student.service.js";
 
 export const generateSchedule = asyncHandler(async (req, res) => {
-  const schedule = await scheduleService.generate(req.body.period);
-  ok(res, schedule, 201);
+  const result = await scheduleService.generate(req.body?.period);
+  ok(res, result, 201);
+});
+
+export const precheckSchedule = asyncHandler(async (_req, res) =>
+  ok(res, await scheduleService.precheck())
+);
+
+export const latestSchedule = asyncHandler(async (_req, res) => {
+  const item = await scheduleService.getLatest();
+  ok(res, item);
 });
 
 export const listSchedules = asyncHandler(async (_req, res) =>

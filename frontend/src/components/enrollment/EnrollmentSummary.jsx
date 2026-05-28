@@ -158,8 +158,7 @@ export default function EnrollmentSummary({
 
       {status === "CONFIRMED" && (
         <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
-          Tu matrícula está confirmada. Si necesitas cambios contacta a tu
-          coordinador académico.
+          Matrícula confirmada. Si cambias cursos, valida y confirma de nuevo.
         </p>
       )}
     </aside>

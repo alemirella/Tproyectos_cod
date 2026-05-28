@@ -34,7 +34,7 @@ export default function EnrollmentSummaryCards({ enrollments = [] }) {
         icon={BadgeCheck}
         label="Validadas"
         value={validated}
-        hint="Listas para confirmar"
+        hint="Validadas por el alumno"
         accent="green"
       />
       <StatCard

@@ -27,16 +27,7 @@ function creditMessage(total) {
   return "Créditos dentro del rango permitido.";
 }
 
-export default function EnrollmentDetailDrawer({
-  enrollment,
-  open,
-  onClose,
-  onValidate,
-  onConfirm,
-  onReject,
-  onObserve,
-  loadingAction,
-}) {
+export default function EnrollmentDetailDrawer({ enrollment, open, onClose }) {
   if (!enrollment) return null;
   const student = enrollment.student || {};
   const courses = enrollment.courses || [];
@@ -50,40 +41,10 @@ export default function EnrollmentDetailDrawer({
       onClose={onClose}
       title="Detalle de matrícula"
       footer={
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onValidate}
-            disabled={loadingAction}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-          >
-            Validar matrícula
-          </button>
-          <button
-            type="button"
-            onClick={onObserve}
-            disabled={loadingAction}
-            className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 hover:bg-amber-100 disabled:opacity-60"
-          >
-            Observar
-          </button>
-          <button
-            type="button"
-            onClick={onReject}
-            disabled={loadingAction}
-            className="rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
-          >
-            Rechazar
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={loadingAction || !["VALIDATED", "VALID"].includes(enrollment.status)}
-            className="rounded-lg bg-sgoha-primary px-4 py-2 text-sm font-semibold text-white hover:bg-blue-900 disabled:opacity-60"
-          >
-            Confirmar matrícula
-          </button>
-        </div>
+        <p className="text-xs text-slate-500">
+          La validación y confirmación la realiza el alumno en su portal. Este
+          panel es solo de consulta para administración.
+        </p>
       }
     >
       <div className="space-y-5">

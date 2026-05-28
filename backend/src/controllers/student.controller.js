@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ok, fail } from "../utils/apiResponse.js";
 import { studentService } from "../services/student.service.js";
+import { enrollmentService } from "../services/enrollment.service.js";
 
 function handleDuplicate(error, res) {
   if (error?.code !== 11000) return null;
@@ -12,9 +13,10 @@ function handleDuplicate(error, res) {
   return fail(res, "Estudiante duplicado", 409);
 }
 
-export const listStudents = asyncHandler(async (req, res) =>
-  ok(res, await studentService.list(req.query))
-);
+export const listStudents = asyncHandler(async (req, res) => {
+  await enrollmentService.repairAll();
+  ok(res, await studentService.list(req.query));
+});
 
 export const getStudent = asyncHandler(async (req, res) => {
   const item = await studentService.getById(req.params.id);

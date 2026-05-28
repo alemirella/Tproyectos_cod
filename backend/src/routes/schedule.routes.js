@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {
   generateSchedule,
+  precheckSchedule,
+  latestSchedule,
   listSchedules,
   getSchedule,
   scheduleByStudent,
@@ -26,10 +28,15 @@ router.get(
   myStudentSchedule
 );
 
-router.post("/generate", generateSchedule);
-router.get("/", listSchedules);
-router.get("/student/:studentId", scheduleByStudent);
-router.get("/teacher/:teacherId", scheduleByTeacher);
-router.get("/classroom/:classroomId", scheduleByClassroom);
-router.get("/:id", getSchedule);
+const adminOnly = [protect, authorizeRoles("ADMIN")];
+
+router.get("/precheck", ...adminOnly, precheckSchedule);
+router.get("/latest", ...adminOnly, latestSchedule);
+router.post("/generate", ...adminOnly, generateSchedule);
+router.get("/", ...adminOnly, listSchedules);
+router.get("/student/:studentId", ...adminOnly, scheduleByStudent);
+router.get("/teacher/:teacherId", ...adminOnly, scheduleByTeacher);
+router.get("/classroom/:classroomId", ...adminOnly, scheduleByClassroom);
+router.get("/:id", ...adminOnly, getSchedule);
+
 export default router;

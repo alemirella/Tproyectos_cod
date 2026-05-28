@@ -20,8 +20,7 @@ import EnrollmentsPage from "../pages/enrollments/EnrollmentsPage.jsx";
 import CoursesPage from "../pages/courses/CoursesPage.jsx";
 import TeachersPage from "../pages/teachers/TeachersPage.jsx";
 import TeacherAvailabilityAdminPage from "../pages/teachers/TeacherAvailabilityPage.jsx";
-import ScheduleGenerationPage from "../pages/schedules/ScheduleGenerationPage.jsx";
-import ScheduleResultsPage from "../pages/schedules/ScheduleResultsPage.jsx";
+import SchedulesPage from "../pages/schedules/SchedulesPage.jsx";
 
 // Cuenta compartida
 import AccountPage from "../pages/account/AccountPage.jsx";
@@ -75,9 +74,15 @@ export default function AppRouter() {
             <Route path="/students" element={<StudentsPage />} />
             <Route path="/timeslots" element={<TimeSlotsPage />} />
             <Route path="/enrollments" element={<EnrollmentsPage />} />
-            <Route path="/schedules/generate" element={<ScheduleGenerationPage />} />
-            <Route path="/schedules" element={<ScheduleResultsPage />} />
-            <Route path="/schedules/results" element={<ScheduleResultsPage />} />
+            <Route path="/schedules" element={<SchedulesPage />} />
+            <Route
+              path="/schedules/generate"
+              element={<Navigate to="/schedules" replace />}
+            />
+            <Route
+              path="/schedules/results"
+              element={<Navigate to="/schedules" replace />}
+            />
             <Route path="/restrictions" element={<AdminPlaceholderPage />} />
             <Route path="/settings" element={<AdminPlaceholderPage />} />
           </Route>

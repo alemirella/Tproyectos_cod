@@ -2,6 +2,10 @@ import Enrollment from "../models/Enrollment.js";
 import Course from "../models/Course.js";
 import Student from "../models/Student.js";
 import { MAX_CREDITS, MIN_CREDITS } from "../utils/constants.js";
+import {
+  dedupeStudentEnrollments,
+  syncStudentEnrollmentStatus,
+} from "./enrollmentSync.js";
 
 function buildListQuery({
   status,
@@ -28,16 +32,21 @@ function buildValidationResults({
   totalCredits,
   courseIds = [],
   courses = [],
+  skipPrereqs = false,
 }) {
   const hasMessage = (snippet) =>
     messages.some((m) => String(m).toLowerCase().includes(snippet.toLowerCase()));
+  const hasRealPrereqError = messages.some((m) =>
+    /no cumple prerrequisito/i.test(String(m))
+  );
   return {
-    prerequisitesValid: !hasMessage("prerrequisito"),
+    prerequisitesValid: skipPrereqs || !hasRealPrereqError,
     creditsValid: totalCredits >= MIN_CREDITS && totalCredits <= MAX_CREDITS,
     coursesAvailable: !hasMessage("no existen"),
     duplicatedCourses: new Set(courseIds.map(String)).size !== courseIds.length,
     alreadyApprovedCourses: hasMessage("ya aprobó"),
     coursesCount: courses.length,
+    newStudentPrereqsSkipped: skipPrereqs,
   };
 }
 
@@ -122,12 +131,27 @@ export async function validateEnrollmentPayload({ studentId, courseIds }) {
       totalCredits,
       courseIds,
       courses,
+      skipPrereqs,
     }),
   };
 }
 
+async function applyValidationToEnrollment(enrollment, validation) {
+  enrollment.courses = validation.courses.map((c) => c._id);
+  enrollment.totalCredits = validation.totalCredits;
+  enrollment.validationResults = validation.validationResults;
+  enrollment.validationMessages = validation.messages;
+  enrollment.status = validation.valid ? "VALID" : validation.status;
+  await enrollment.save();
+  await syncStudentEnrollmentStatus(enrollment.student, enrollment.status);
+  return enrollment;
+}
+
 export const enrollmentService = {
   list: async (params = {}) => {
+    const studentIds = await Enrollment.distinct("student");
+    await Promise.all(studentIds.map((id) => dedupeStudentEnrollments(id)));
+
     const query = buildListQuery(params);
     let docs = await Enrollment.find(query)
       .populate("student")
@@ -153,64 +177,56 @@ export const enrollmentService = {
       .populate("student")
       .populate({ path: "courses", populate: { path: "prerequisites", select: "code name" } }),
 
-  /** Última matrícula del estudiante. */
-  getLatestByStudent: (studentId) =>
-    Enrollment.findOne({ student: studentId })
-      .populate("courses")
-      .sort({ createdAt: -1 }),
+  /** Matrícula única del estudiante (deduplica si hubiera registros viejos). */
+  getLatestByStudent: async (studentId) => {
+    await dedupeStudentEnrollments(studentId);
+    return Enrollment.findOne({ student: studentId }).populate("courses");
+  },
 
   upsertDraft: async ({ studentId, courseIds }) => {
+    await dedupeStudentEnrollments(studentId);
     const validation = await validateEnrollmentPayload({ studentId, courseIds });
-    const existing = await Enrollment.findOne({ student: studentId }).sort({
-      createdAt: -1,
-    });
+    let enrollment = await Enrollment.findOne({ student: studentId });
 
-    if (existing && existing.status !== "CONFIRMED") {
-      existing.courses = courseIds;
-      existing.totalCredits = validation.totalCredits;
-      existing.status = validation.status;
-      existing.validationResults = validation.validationResults;
-      existing.validationMessages = validation.messages;
-      await existing.save();
-      return existing;
+    if (!enrollment) {
+      enrollment = await Enrollment.create({
+        student: studentId,
+        courses: courseIds,
+        totalCredits: validation.totalCredits,
+        status: validation.valid ? "VALID" : validation.status,
+        validationResults: validation.validationResults,
+        validationMessages: validation.messages,
+      });
+      await syncStudentEnrollmentStatus(studentId, enrollment.status);
+      return enrollment;
     }
 
-    return Enrollment.create({
-      student: studentId,
-      courses: courseIds,
-      totalCredits: validation.totalCredits,
-      status: validation.status,
-      validationResults: validation.validationResults,
-      validationMessages: validation.messages,
-    });
+    enrollment.courses = courseIds;
+    enrollment.totalCredits = validation.totalCredits;
+    enrollment.validationResults = validation.validationResults;
+    enrollment.validationMessages = validation.messages;
+    if (enrollment.status === "CONFIRMED") {
+      enrollment.status = validation.valid ? "VALID" : validation.status;
+    } else {
+      enrollment.status = validation.valid ? "VALID" : validation.status;
+    }
+    await enrollment.save();
+    await syncStudentEnrollmentStatus(studentId, enrollment.status);
+    return enrollment;
   },
 
-  create: async ({ studentId, courseIds }) => {
-    const validation = await validateEnrollmentPayload({ studentId, courseIds });
-    return Enrollment.create({
-      student: studentId,
-      courses: courseIds,
-      totalCredits: validation.totalCredits,
-      status: validation.status,
-      validationResults: validation.validationResults,
-      validationMessages: validation.messages,
-    });
-  },
+  create: async ({ studentId, courseIds }) =>
+    enrollmentService.upsertDraft({ studentId, courseIds }),
 
   update: async (id, { courseIds }) => {
     const enrollment = await Enrollment.findById(id);
     if (!enrollment) return null;
+    await dedupeStudentEnrollments(enrollment.student);
     const validation = await validateEnrollmentPayload({
       studentId: enrollment.student,
       courseIds,
     });
-    enrollment.courses = courseIds;
-    enrollment.totalCredits = validation.totalCredits;
-    enrollment.status = validation.status;
-    enrollment.validationResults = validation.validationResults;
-    enrollment.validationMessages = validation.messages;
-    await enrollment.save();
-    return enrollment;
+    return applyValidationToEnrollment(enrollment, validation);
   },
 
   validate: validateEnrollmentPayload,
@@ -222,9 +238,6 @@ export const enrollmentService = {
       studentId: enrollment.student,
       courseIds: enrollment.courses.map(String),
     });
-    enrollment.totalCredits = validation.totalCredits;
-    enrollment.validationResults = validation.validationResults;
-    enrollment.validationMessages = validation.messages;
     if (validation.valid) {
       enrollment.status = "VALIDATED";
     } else if (
@@ -236,16 +249,24 @@ export const enrollmentService = {
     } else {
       enrollment.status = "OBSERVED";
     }
+    enrollment.totalCredits = validation.totalCredits;
+    enrollment.validationResults = validation.validationResults;
+    enrollment.validationMessages = validation.messages;
     await enrollment.save();
+    await syncStudentEnrollmentStatus(enrollment.student, enrollment.status);
     return enrollment;
   },
 
   confirm: async (id) => {
-    const enrollment = await Enrollment.findById(id);
+    let enrollment = await Enrollment.findById(id);
     if (!enrollment) return null;
+    await dedupeStudentEnrollments(enrollment.student);
+    enrollment = await Enrollment.findOne({ student: enrollment.student });
+    if (!enrollment) return null;
+
     const validation = await validateEnrollmentPayload({
       studentId: enrollment.student,
-      courseIds: enrollment.courses,
+      courseIds: enrollment.courses.map(String),
     });
     if (!validation.valid) {
       const err = new Error("No se puede confirmar la matrícula");
@@ -258,6 +279,12 @@ export const enrollmentService = {
     enrollment.validationResults = validation.validationResults;
     enrollment.validationMessages = validation.messages;
     await enrollment.save();
+
+    await Student.findByIdAndUpdate(enrollment.student, {
+      enrollmentStatus: "CONFIRMED",
+      isNewStudent: false,
+    });
+
     return enrollment;
   },
 
@@ -272,6 +299,7 @@ export const enrollmentService = {
       ];
     }
     await enrollment.save();
+    await syncStudentEnrollmentStatus(enrollment.student, "REJECTED");
     return enrollment;
   },
 
@@ -286,6 +314,17 @@ export const enrollmentService = {
       ];
     }
     await enrollment.save();
+    await syncStudentEnrollmentStatus(enrollment.student, "OBSERVED");
     return enrollment;
+  },
+
+  /** Repara duplicados y sincroniza estado en fichas de estudiante. */
+  repairAll: async () => {
+    const studentIds = await Enrollment.distinct("student");
+    for (const studentId of studentIds) {
+      const kept = await dedupeStudentEnrollments(studentId);
+      if (kept) await syncStudentEnrollmentStatus(studentId, kept.status);
+    }
+    return { studentsProcessed: studentIds.length };
   },
 };

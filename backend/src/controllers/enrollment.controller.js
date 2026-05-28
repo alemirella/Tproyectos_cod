@@ -3,9 +3,10 @@ import { ok, fail } from "../utils/apiResponse.js";
 import { enrollmentService } from "../services/enrollment.service.js";
 import { studentService } from "../services/student.service.js";
 
-export const listEnrollments = asyncHandler(async (_req, res) =>
-  ok(res, await enrollmentService.list(_req.query))
-);
+export const listEnrollments = asyncHandler(async (_req, res) => {
+  await enrollmentService.repairAll();
+  ok(res, await enrollmentService.list(_req.query));
+});
 
 export const getEnrollment = asyncHandler(async (req, res) => {
   const item = await enrollmentService.getById(req.params.id);
@@ -71,6 +72,7 @@ export const observeEnrollment = asyncHandler(async (req, res) => {
 export const getMyEnrollment = asyncHandler(async (req, res) => {
   const student = await studentService.getByUserId(req.user._id);
   if (!student) return fail(res, "Perfil de alumno no vinculado", 404);
+  await enrollmentService.repairAll();
   const enrollment = await enrollmentService.getLatestByStudent(student._id);
   ok(res, { student, enrollment });
 });
@@ -102,6 +104,7 @@ export const validateMyEnrollment = asyncHandler(async (req, res) => {
 export const confirmMyEnrollment = asyncHandler(async (req, res) => {
   const student = await studentService.getByUserId(req.user._id);
   if (!student) return fail(res, "Perfil de alumno no vinculado", 404);
+  await enrollmentService.repairAll();
   const latest = await enrollmentService.getLatestByStudent(student._id);
   if (!latest) return fail(res, "No tienes una selección guardada", 404);
   try {

@@ -39,6 +39,9 @@ export const STUDENT_ENROLLMENT_STATUSES = [
 ];
 export const SCHEDULE_STATUS = ["GENERATED", "PARTIAL", "FAILED"];
 
+/** Re-exportado desde scheduleEnrollment.js para documentación en catálogo. */
+export { SCHEDULE_ENROLLMENT_STATUSES } from "./scheduleEnrollment.js";
+
 export const DAY_LABELS = {
   MONDAY: "Lunes",
   TUESDAY: "Martes",

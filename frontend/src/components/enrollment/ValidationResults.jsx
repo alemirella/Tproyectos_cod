@@ -11,19 +11,39 @@ import {
   MAX_CREDITS,
 } from "../../utils/enrollmentConstants.js";
 
+function isInformationalPrereqMessage(message) {
+  const lower = String(message).toLowerCase();
+  return (
+    lower.includes("estudiante nuevo") ||
+    lower.includes("omitidos") ||
+    lower.includes("primera matrícula")
+  );
+}
+
+function isPrerequisiteErrorMessage(message) {
+  const lower = String(message).toLowerCase();
+  if (isInformationalPrereqMessage(message)) return false;
+  return (
+    lower.includes("no cumple prerrequisito") ||
+    lower.includes("ya aprobó") ||
+    lower.includes("repetidos")
+  );
+}
+
 /**
- * Resultado del Paso 3 — clasifica los mensajes que devuelve el backend en
- * tres bloques: prerrequisitos, créditos y disponibilidad.
- *
- * Si todavía no hay validación oficial (`validation === null`), muestra un
- * estado inicial invitando al alumno a presionar "Validar matrícula".
+ * Resultado del Paso 3 — prerrequisitos, créditos y disponibilidad.
  */
-export default function ValidationResults({ validation, totalCredits }) {
+export default function ValidationResults({
+  validation,
+  totalCredits,
+  isNewStudent = false,
+}) {
   if (!validation) {
     return (
       <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-5 text-center text-sm text-slate-500">
-        Presiona <span className="font-semibold text-slate-700">Validar matrícula</span> para
-        verificar tu selección actual.
+        Presiona{" "}
+        <span className="font-semibold text-slate-700">Validar matrícula</span>{" "}
+        para verificar tu selección actual.
       </div>
     );
   }
@@ -34,17 +54,21 @@ export default function ValidationResults({ validation, totalCredits }) {
       ? totalCredits
       : validation.totalCredits || 0;
 
-  const prereqMessages = messages.filter(
-    (m) =>
-      m.toLowerCase().includes("prerrequisito") ||
-      m.toLowerCase().includes("aprobó") ||
-      m.toLowerCase().includes("repetidos")
-  );
-  const availabilityMessages = messages.filter((m) =>
-    m.toLowerCase().includes("no existen")
-  );
+  const prereqErrors = messages.filter(isPrerequisiteErrorMessage);
+  const skipPrereqs =
+    validation.validationResults?.newStudentPrereqsSkipped === true ||
+    isNewStudent;
 
-  const prereqStatus = prereqMessages.length === 0 ? "ok" : "error";
+  let prereqStatus = "ok";
+  let prereqDescription = "Prerrequisitos cumplidos";
+
+  if (skipPrereqs) {
+    prereqDescription =
+      "Estudiante nuevo: no se exigen prerrequisitos en la primera matrícula";
+  } else if (prereqErrors.length > 0) {
+    prereqStatus = "error";
+    prereqDescription = prereqErrors.join(" · ");
+  }
 
   let creditsStatus = "ok";
   let creditsMessage = "Créditos dentro del rango permitido";
@@ -59,6 +83,9 @@ export default function ValidationResults({ validation, totalCredits }) {
     creditsMessage = `Supera el máximo de ${MAX_CREDITS} créditos en ${total - MAX_CREDITS}`;
   }
 
+  const availabilityMessages = messages.filter((m) =>
+    String(m).toLowerCase().includes("no existen")
+  );
   const availabilityStatus = availabilityMessages.length === 0 ? "ok" : "error";
 
   return (
@@ -67,11 +94,7 @@ export default function ValidationResults({ validation, totalCredits }) {
         icon={ShieldCheck}
         status={prereqStatus}
         title="Prerrequisitos"
-        description={
-          prereqStatus === "ok"
-            ? "Prerrequisitos cumplidos"
-            : prereqMessages.join(" · ")
-        }
+        description={prereqDescription}
       />
       <ResultRow
         icon={GaugeCircle}

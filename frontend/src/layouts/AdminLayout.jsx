@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
   BookOpen,
@@ -8,12 +8,10 @@ import {
   ShieldCheck,
   CalendarRange,
   UserCheck,
-  CalendarDays,
   Clock,
   Ban,
   Settings,
   UserCog,
-  Zap,
 } from "lucide-react";
 import RoleSidebar from "../components/layout/RoleSidebar.jsx";
 import RoleHeader from "../components/layout/RoleHeader.jsx";
@@ -28,7 +26,6 @@ const adminNav = [
   { to: "/students", label: "Estudiantes", icon: Users },
   { to: "/timeslots", label: "Franjas horarias", icon: CalendarRange },
   { to: "/enrollments", label: "Matrícula", icon: UserCheck },
-  { to: "/schedules/generate", label: "Generar horarios", icon: CalendarDays },
   { to: "/schedules", label: "Horarios", icon: Clock },
   { to: "/restrictions", label: "Restricciones", icon: Ban },
   { to: "/settings", label: "Configuración", icon: Settings },
@@ -37,8 +34,6 @@ const adminNav = [
 
 export default function AdminLayout() {
   const { open, toggle, close } = useMobileNav();
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-sgoha-bg">
       {open && (
@@ -56,19 +51,6 @@ export default function AdminLayout() {
         navItems={adminNav}
         mobileOpen={open}
         onNavigate={close}
-        footer={
-          <button
-            type="button"
-            onClick={() => {
-              close();
-              navigate("/schedules/generate");
-            }}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-sgoha-secondary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/30 transition hover:bg-blue-500"
-          >
-            <Zap className="h-4 w-4 shrink-0" />
-            <span className="truncate">Generar horario</span>
-          </button>
-        }
       />
 
       <div className="flex min-h-screen flex-col lg:ml-[264px]">

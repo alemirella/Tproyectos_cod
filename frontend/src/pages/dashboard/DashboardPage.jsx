@@ -155,7 +155,7 @@ export default function DashboardPage() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/schedules/generate")}
+              onClick={() => navigate("/schedules")}
               className="flex flex-col items-center justify-center gap-2 rounded-xl bg-sgoha-primary p-5 text-center text-white shadow-lg shadow-blue-900/20 transition hover:bg-blue-900"
             >
               <CalendarDays className="h-8 w-8 text-white/90" strokeWidth={1.5} />

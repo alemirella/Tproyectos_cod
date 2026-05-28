@@ -170,8 +170,20 @@ export default function StudentEnrollmentValidationPage() {
     if (!validation?.valid) return;
     setConfirming(true);
     try {
+      await studentPortalService.saveMySelection(selectedIds);
+      const result = await studentPortalService.validateMySelection(selectedIds);
+      setValidation(result);
+      if (!result.valid) {
+        showToast("La selección ya no es válida. Revise los mensajes.", "error");
+        return;
+      }
       await studentPortalService.confirmMyEnrollment();
-      await refreshEnrollment();
+      const bundle = await refreshEnrollment();
+      if (bundle?.enrollment?.courses?.length) {
+        const ids = bundle.enrollment.courses.map((c) => String(c._id));
+        setSelectedIds(ids);
+      }
+      setValidation(result);
       showToast("Matrícula confirmada correctamente.");
     } catch (e) {
       const msg =
@@ -203,10 +215,9 @@ export default function StudentEnrollmentValidationPage() {
   const isConfirmed = enrollmentStatus === "CONFIRMED";
   const canConfirm =
     Boolean(validation?.valid) &&
-    !isConfirmed &&
+    enrollmentStatus !== "CONFIRMED" &&
     totalCredits >= MIN_CREDITS &&
     totalCredits <= MAX_CREDITS;
-
   // Avance de pasos:
   //  - Paso 1 completado siempre que haya estudiante autenticado.
   //  - Paso 2 completado cuando ya seleccionó al menos un curso.
@@ -264,27 +275,23 @@ export default function StudentEnrollmentValidationPage() {
               icon={BookOpenCheck}
               step={2}
               title="Selección de asignaturas"
-              subtitle={
-                isConfirmed
-                  ? "Tu matrícula ya está confirmada. La selección no se puede modificar."
-                  : "Agrega o quita cursos para construir tu matrícula del periodo."
-              }
+              subtitle="Agrega o quita cursos y vuelve a validar y confirmar si realizas cambios."
             >
-              {isConfirmed ? (
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                  Esta matrícula ya fue confirmada y no admite cambios.
+              {isConfirmed && (
+                <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Tu matrícula está confirmada. Si modificas cursos, deberás
+                  validar y confirmar de nuevo.
                 </div>
-              ) : (
-                <CourseSelectionTable
-                  courses={allCourses}
-                  approvedSet={approvedSet}
-                  selectedSet={selectedSet}
-                  isNewStudent={student?.isNewStudent === true}
-                  onToggle={toggleCourse}
-                  search={search}
-                  onSearchChange={setSearch}
-                />
               )}
+              <CourseSelectionTable
+                courses={allCourses}
+                approvedSet={approvedSet}
+                selectedSet={selectedSet}
+                isNewStudent={student?.isNewStudent === true}
+                onToggle={toggleCourse}
+                search={search}
+                onSearchChange={setSearch}
+              />
             </StepCard>
 
             <StepCard
@@ -296,6 +303,7 @@ export default function StudentEnrollmentValidationPage() {
               <ValidationResults
                 validation={validation}
                 totalCredits={totalCredits}
+                isNewStudent={student?.isNewStudent === true}
               />
             </StepCard>
           </div>

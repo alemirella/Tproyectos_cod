@@ -191,7 +191,7 @@ export default function EnrollmentsPage() {
 
       <PageHeader
         title="Matrícula"
-        subtitle="Supervisa y valida las matrículas académicas de los estudiantes."
+        subtitle="Supervisa las matrículas que los estudiantes validan y confirman en su portal."
       >
         <button
           type="button"
@@ -204,6 +204,7 @@ export default function EnrollmentsPage() {
       </PageHeader>
 
       <p className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        Los alumnos gestionan su matrícula desde el portal (validar y confirmar).
         Las matrículas confirmadas alimentan el motor de generación de horarios.
       </p>
 
@@ -333,7 +334,9 @@ export default function EnrollmentsPage() {
                         </span>
                       </td>
                       <td className="px-5 py-3 align-top text-xs">
-                        {e.validationResults?.prerequisitesValid === true ? (
+                        {e.validationResults?.newStudentPrereqsSkipped ? (
+                          <span className="font-semibold text-blue-700">N/A (nuevo)</span>
+                        ) : e.validationResults?.prerequisitesValid === true ? (
                           <span className="font-semibold text-emerald-700">Correcto</span>
                         ) : e.validationResults?.prerequisitesValid === false ? (
                           <span className="font-semibold text-red-700">Faltantes</span>
@@ -353,25 +356,6 @@ export default function EnrollmentsPage() {
                             icon={Eye}
                             title="Ver detalle"
                             onClick={() => setDetail(e)}
-                          />
-                          <IconBtn
-                            icon={CheckCircle2}
-                            title="Validar"
-                            onClick={() => runAction("validate", e._id)}
-                            disabled={saving}
-                          />
-                          <IconBtn
-                            icon={CheckCircle2}
-                            title="Confirmar"
-                            onClick={() => runAction("confirm", e._id)}
-                            disabled={saving || !["VALIDATED", "VALID"].includes(e.status)}
-                          />
-                          <IconBtn
-                            icon={Ban}
-                            title="Rechazar"
-                            onClick={() => runAction("reject", e._id, "Rechazada por administración")}
-                            disabled={saving}
-                            danger
                           />
                         </div>
                       </td>
@@ -405,13 +389,6 @@ export default function EnrollmentsPage() {
                     >
                       <Eye className="h-3.5 w-3.5" /> Ver detalle
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => runAction("validate", e._id)}
-                      className="inline-flex items-center gap-1 rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Validar
-                    </button>
                   </div>
                 </article>
               ))}
@@ -424,11 +401,6 @@ export default function EnrollmentsPage() {
         enrollment={detail}
         open={Boolean(detail)}
         onClose={() => setDetail(null)}
-        onValidate={() => runAction("validate", detail?._id)}
-        onConfirm={() => runAction("confirm", detail?._id)}
-        onReject={() => runAction("reject", detail?._id, "Rechazada por administración")}
-        onObserve={() => runAction("observe", detail?._id, "Matrícula observada por administración")}
-        loadingAction={saving}
       />
 
       <Modal
