@@ -56,3 +56,43 @@ export function countAvailabilityStats(availability = []) {
   const hours = Math.round((minutes / 60) * 100) / 100;
   return { blocks, minutes, hours };
 }
+
+/** Texto legible de horas disponibles (ej. "9 h disponibles", "9 h 48 min disponibles"). */
+export function formatAvailabilityDuration(availability = []) {
+  const { blocks, minutes } = countAvailabilityStats(availability);
+  if (blocks === 0) return "0 h disponibles";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (m === 0) return `${h} h disponibles`;
+  return `${h} h ${m} min disponibles`;
+}
+
+/**
+ * Turnos oficiales HORALV para agrupar la grilla y acciones rápidas.
+ * Los startTime deben coincidir con TIME_BLOCKS.
+ */
+export const AVAILABILITY_SHIFTS = [
+  {
+    id: "MORNING",
+    label: "Mañana",
+    startTimes: ["07:00", "07:45", "08:40", "09:25"],
+  },
+  {
+    id: "AFTERNOON",
+    label: "Tarde",
+    startTimes: ["14:00", "14:45", "15:40", "16:25"],
+  },
+  {
+    id: "NIGHT",
+    label: "Noche",
+    startTimes: ["17:20", "18:05", "19:00", "19:45", "20:30", "21:15"],
+  },
+];
+
+/** Bloques HORALV que pertenecen a un turno. */
+export function blocksForShift(shiftId) {
+  const shift = AVAILABILITY_SHIFTS.find((s) => s.id === shiftId);
+  if (!shift) return [];
+  const allowed = new Set(shift.startTimes);
+  return TIME_BLOCKS.filter((b) => allowed.has(b.startTime));
+}
