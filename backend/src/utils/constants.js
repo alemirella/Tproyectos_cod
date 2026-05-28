@@ -15,7 +15,21 @@ export const CLASSROOM_STATUSES = [
   "MAINTENANCE",
   "INACTIVE",
 ];
-export const ENROLLMENT_STATUS = ["DRAFT", "VALID", "INVALID", "CONFIRMED"];
+/**
+ * Estados de matrícula:
+ * - VALID/INVALID: legado (flujo alumno existente)
+ * - PENDING/VALIDATED/OBSERVED/REJECTED: flujo administrativo
+ */
+export const ENROLLMENT_STATUS = [
+  "DRAFT",
+  "PENDING",
+  "VALID",
+  "VALIDATED",
+  "INVALID",
+  "CONFIRMED",
+  "OBSERVED",
+  "REJECTED",
+];
 /** Estado administrativo de matrícula visible en la ficha del estudiante. */
 export const STUDENT_ENROLLMENT_STATUSES = [
   "PENDING",
