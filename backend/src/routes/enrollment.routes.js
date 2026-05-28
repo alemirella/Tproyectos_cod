@@ -6,6 +6,9 @@ import {
   updateEnrollment,
   validateEnrollment,
   confirmEnrollment,
+  validateEnrollmentById,
+  rejectEnrollment,
+  observeEnrollment,
   getMyEnrollment,
   saveMyEnrollment,
   validateMyEnrollment,
@@ -30,10 +33,13 @@ router.post(
   confirmMyEnrollment
 );
 
-router.get("/", listEnrollments);
-router.post("/validate", validateEnrollment);
-router.get("/:id", getEnrollment);
-router.post("/", createEnrollment);
-router.put("/:id", updateEnrollment);
-router.post("/:id/confirm", confirmEnrollment);
+router.get("/", protect, authorizeRoles("ADMIN"), listEnrollments);
+router.post("/validate", protect, authorizeRoles("ADMIN"), validateEnrollment);
+router.get("/:id", protect, authorizeRoles("ADMIN"), getEnrollment);
+router.post("/", protect, authorizeRoles("ADMIN"), createEnrollment);
+router.put("/:id", protect, authorizeRoles("ADMIN"), updateEnrollment);
+router.post("/:id/validate", protect, authorizeRoles("ADMIN"), validateEnrollmentById);
+router.post("/:id/confirm", protect, authorizeRoles("ADMIN"), confirmEnrollment);
+router.post("/:id/reject", protect, authorizeRoles("ADMIN"), rejectEnrollment);
+router.post("/:id/observe", protect, authorizeRoles("ADMIN"), observeEnrollment);
 export default router;

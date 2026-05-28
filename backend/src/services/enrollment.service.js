@@ -3,6 +3,44 @@ import Course from "../models/Course.js";
 import Student from "../models/Student.js";
 import { MAX_CREDITS, MIN_CREDITS } from "../utils/constants.js";
 
+function buildListQuery({
+  status,
+  student,
+  minCredits,
+  maxCredits,
+} = {}) {
+  const query = {};
+  if (student) query.student = student;
+  if (status && status !== "ALL") query.status = status;
+  const credits = {};
+  if (minCredits !== undefined && minCredits !== "") {
+    credits.$gte = Number(minCredits);
+  }
+  if (maxCredits !== undefined && maxCredits !== "") {
+    credits.$lte = Number(maxCredits);
+  }
+  if (Object.keys(credits).length) query.totalCredits = credits;
+  return query;
+}
+
+function buildValidationResults({
+  messages,
+  totalCredits,
+  courseIds = [],
+  courses = [],
+}) {
+  const hasMessage = (snippet) =>
+    messages.some((m) => String(m).toLowerCase().includes(snippet.toLowerCase()));
+  return {
+    prerequisitesValid: !hasMessage("prerrequisito"),
+    creditsValid: totalCredits >= MIN_CREDITS && totalCredits <= MAX_CREDITS,
+    coursesAvailable: !hasMessage("no existen"),
+    duplicatedCourses: new Set(courseIds.map(String)).size !== courseIds.length,
+    alreadyApprovedCourses: hasMessage("ya aprobó"),
+    coursesCount: courses.length,
+  };
+}
+
 export async function validateEnrollmentPayload({ studentId, courseIds }) {
   const messages = [];
   const student = await Student.findById(studentId).populate("approvedCourses");
@@ -79,18 +117,41 @@ export async function validateEnrollmentPayload({ studentId, courseIds }) {
     totalCredits,
     student,
     courses,
+    validationResults: buildValidationResults({
+      messages,
+      totalCredits,
+      courseIds,
+      courses,
+    }),
   };
 }
 
 export const enrollmentService = {
-  list: () =>
-    Enrollment.find()
+  list: async (params = {}) => {
+    const query = buildListQuery(params);
+    let docs = await Enrollment.find(query)
       .populate("student")
-      .populate("courses")
-      .sort({ createdAt: -1 }),
+      .populate({ path: "courses", populate: { path: "prerequisites", select: "code name" } })
+      .sort({ updatedAt: -1 });
+    if (params.search?.trim()) {
+      docs = docs.filter((doc) => {
+        const term = params.search?.trim()?.toLowerCase();
+        if (!term) return true;
+        const st = doc.student;
+        return (
+          (st?.fullName || "").toLowerCase().includes(term) ||
+          (st?.code || "").toLowerCase().includes(term) ||
+          (st?.email || "").toLowerCase().includes(term)
+        );
+      });
+    }
+    return docs;
+  },
 
   getById: (id) =>
-    Enrollment.findById(id).populate("student").populate("courses"),
+    Enrollment.findById(id)
+      .populate("student")
+      .populate({ path: "courses", populate: { path: "prerequisites", select: "code name" } }),
 
   /** Última matrícula del estudiante. */
   getLatestByStudent: (studentId) =>
@@ -108,6 +169,7 @@ export const enrollmentService = {
       existing.courses = courseIds;
       existing.totalCredits = validation.totalCredits;
       existing.status = validation.status;
+      existing.validationResults = validation.validationResults;
       existing.validationMessages = validation.messages;
       await existing.save();
       return existing;
@@ -118,6 +180,7 @@ export const enrollmentService = {
       courses: courseIds,
       totalCredits: validation.totalCredits,
       status: validation.status,
+      validationResults: validation.validationResults,
       validationMessages: validation.messages,
     });
   },
@@ -129,6 +192,7 @@ export const enrollmentService = {
       courses: courseIds,
       totalCredits: validation.totalCredits,
       status: validation.status,
+      validationResults: validation.validationResults,
       validationMessages: validation.messages,
     });
   },
@@ -143,12 +207,38 @@ export const enrollmentService = {
     enrollment.courses = courseIds;
     enrollment.totalCredits = validation.totalCredits;
     enrollment.status = validation.status;
+    enrollment.validationResults = validation.validationResults;
     enrollment.validationMessages = validation.messages;
     await enrollment.save();
     return enrollment;
   },
 
   validate: validateEnrollmentPayload,
+
+  validateAndUpdate: async (id) => {
+    const enrollment = await Enrollment.findById(id);
+    if (!enrollment) return null;
+    const validation = await validateEnrollmentPayload({
+      studentId: enrollment.student,
+      courseIds: enrollment.courses.map(String),
+    });
+    enrollment.totalCredits = validation.totalCredits;
+    enrollment.validationResults = validation.validationResults;
+    enrollment.validationMessages = validation.messages;
+    if (validation.valid) {
+      enrollment.status = "VALIDATED";
+    } else if (
+      validation.messages.some((m) =>
+        String(m).toLowerCase().includes("supera el máximo")
+      )
+    ) {
+      enrollment.status = "REJECTED";
+    } else {
+      enrollment.status = "OBSERVED";
+    }
+    await enrollment.save();
+    return enrollment;
+  },
 
   confirm: async (id) => {
     const enrollment = await Enrollment.findById(id);
@@ -164,7 +254,37 @@ export const enrollmentService = {
       throw err;
     }
     enrollment.status = "CONFIRMED";
+    enrollment.totalCredits = validation.totalCredits;
+    enrollment.validationResults = validation.validationResults;
     enrollment.validationMessages = validation.messages;
+    await enrollment.save();
+    return enrollment;
+  },
+
+  reject: async (id, reason) => {
+    const enrollment = await Enrollment.findById(id);
+    if (!enrollment) return null;
+    enrollment.status = "REJECTED";
+    if (reason?.trim()) {
+      enrollment.validationMessages = [
+        ...(enrollment.validationMessages || []),
+        `Rechazada por administración: ${reason.trim()}`,
+      ];
+    }
+    await enrollment.save();
+    return enrollment;
+  },
+
+  observe: async (id, note) => {
+    const enrollment = await Enrollment.findById(id);
+    if (!enrollment) return null;
+    enrollment.status = "OBSERVED";
+    if (note?.trim()) {
+      enrollment.validationMessages = [
+        ...(enrollment.validationMessages || []),
+        `Observación administrativa: ${note.trim()}`,
+      ];
+    }
     await enrollment.save();
     return enrollment;
   },
