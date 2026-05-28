@@ -4,7 +4,7 @@ import { enrollmentService } from "../services/enrollment.service.js";
 import { studentService } from "../services/student.service.js";
 
 export const listEnrollments = asyncHandler(async (_req, res) =>
-  ok(res, await enrollmentService.list())
+  ok(res, await enrollmentService.list(_req.query))
 );
 
 export const getEnrollment = asyncHandler(async (req, res) => {
@@ -44,6 +44,27 @@ export const confirmEnrollment = asyncHandler(async (req, res) => {
   } catch (e) {
     fail(res, e.message, e.status || 400, e.details);
   }
+});
+
+/** Valida una matrícula existente por ID y actualiza estado/resultados. */
+export const validateEnrollmentById = asyncHandler(async (req, res) => {
+  const item = await enrollmentService.validateAndUpdate(req.params.id);
+  if (!item) return fail(res, "Matrícula no encontrada", 404);
+  ok(res, await enrollmentService.getById(item._id));
+});
+
+/** Rechaza matrícula por revisión administrativa. */
+export const rejectEnrollment = asyncHandler(async (req, res) => {
+  const item = await enrollmentService.reject(req.params.id, req.body?.reason);
+  if (!item) return fail(res, "Matrícula no encontrada", 404);
+  ok(res, await enrollmentService.getById(item._id));
+});
+
+/** Marca matrícula como observada por revisión administrativa. */
+export const observeEnrollment = asyncHandler(async (req, res) => {
+  const item = await enrollmentService.observe(req.params.id, req.body?.note);
+  if (!item) return fail(res, "Matrícula no encontrada", 404);
+  ok(res, await enrollmentService.getById(item._id));
 });
 
 /** Matrícula activa del alumno autenticado. */

@@ -11,6 +11,13 @@ const enrollmentSchema = new mongoose.Schema(
     courses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }],
     totalCredits: { type: Number, default: 0 },
     status: { type: String, enum: ENROLLMENT_STATUS, default: "DRAFT" },
+    validationResults: {
+      prerequisitesValid: { type: Boolean, default: null },
+      creditsValid: { type: Boolean, default: null },
+      coursesAvailable: { type: Boolean, default: null },
+      duplicatedCourses: { type: Boolean, default: false },
+      alreadyApprovedCourses: { type: Boolean, default: false },
+    },
     validationMessages: [{ type: String }],
   },
   { timestamps: true }
