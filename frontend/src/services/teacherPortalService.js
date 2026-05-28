@@ -22,6 +22,12 @@ export const teacherPortalService = {
     return me?.availableCourses || [];
   },
 
+  /** Alias semántico para la vista "Mis cursos". */
+  getTeacherCourses: async () => {
+    const me = await teacherPortalService.getMyProfile();
+    return me?.availableCourses || [];
+  },
+
   getMySchedule: () => api.get("/schedules/me/teacher").then(getData),
 
   /** Resumen calculado a partir del perfil. */
