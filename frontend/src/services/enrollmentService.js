@@ -1,8 +1,27 @@
 import { api, getData } from "../config/api.js";
 
 export const enrollmentService = {
-  list: () => api.get("/enrollments").then(getData),
-  create: (body) => api.post("/enrollments", body).then(getData),
-  validate: (body) => api.post("/enrollments/validate", body).then(getData),
-  confirm: (id) => api.post(`/enrollments/${id}/confirm`).then(getData),
+  getEnrollments: (params = {}) =>
+    api.get("/enrollments", { params }).then(getData),
+  getEnrollmentById: (id) => api.get(`/enrollments/${id}`).then(getData),
+  createEnrollment: (data) => api.post("/enrollments", data).then(getData),
+  updateEnrollment: (id, data) => api.put(`/enrollments/${id}`, data).then(getData),
+  validateEnrollment: (id) =>
+    api.post(`/enrollments/${id}/validate`).then(getData),
+  confirmEnrollment: (id) =>
+    api.post(`/enrollments/${id}/confirm`).then(getData),
+  rejectEnrollment: (id, reason = "") =>
+    api.post(`/enrollments/${id}/reject`, { reason }).then(getData),
+  observeEnrollment: (id, note = "") =>
+    api.post(`/enrollments/${id}/observe`, { note }).then(getData),
+
+  // Alias retrocompatibles
+  list: (params) => enrollmentService.getEnrollments(params),
+  get: (id) => enrollmentService.getEnrollmentById(id),
+  create: (data) => enrollmentService.createEnrollment(data),
+  update: (id, data) => enrollmentService.updateEnrollment(id, data),
+  validate: (id) => enrollmentService.validateEnrollment(id),
+  confirm: (id) => enrollmentService.confirmEnrollment(id),
+  reject: (id, reason) => enrollmentService.rejectEnrollment(id, reason),
+  observe: (id, note) => enrollmentService.observeEnrollment(id, note),
 };
