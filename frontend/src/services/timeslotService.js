@@ -6,6 +6,6 @@ export const timeslotService = {
   create: (body) => api.post("/timeslots", body).then(getData),
   update: (id, body) => api.put(`/timeslots/${id}`, body).then(getData),
   remove: (id) => api.delete(`/timeslots/${id}`).then(getData),
-  /** Regenera/sincroniza las 98 franjas oficiales HORALV. */
+  /** Regenera/sincroniza las 126 franjas oficiales HORALV. */
   syncOfficial: () => api.post("/timeslots/sync-official").then(getData),
 };

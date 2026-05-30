@@ -30,14 +30,21 @@ export const teacherPortalService = {
 
   getMySchedule: () => api.get("/schedules/me/teacher").then(getData),
 
-  /** Resumen calculado a partir del perfil. */
+  /** Resumen calculado a partir del perfil y horario real. */
   getMySummary: async () => {
-    const me = await teacherPortalService.getMyProfile();
+    const [me, schedule] = await Promise.all([
+      teacherPortalService.getMyProfile().catch(() => null),
+      teacherPortalService.getMySchedule().catch(() => []),
+    ]);
+    const assignments = Array.isArray(schedule) ? schedule : [];
     return {
       teacher: me,
       coursesCount: me?.availableCourses?.length || 0,
       blocksCount: me?.availability?.length || 0,
       hasAvailability: (me?.availability?.length || 0) > 0,
+      scheduleBlocks: assignments.length,
+      scheduleStatus:
+        assignments.length > 0 ? "Generado" : "Pendiente",
     };
   },
 };

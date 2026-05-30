@@ -72,9 +72,13 @@ export default function TeacherHomePage() {
         <StatCard
           icon={Clock}
           label="HORARIO GENERADO"
-          value="Pendiente"
-          hint="Se actualiza al generar horarios"
-          accent="amber"
+          value={summary?.scheduleStatus ?? "Pendiente"}
+          hint={
+            (summary?.scheduleBlocks ?? 0) > 0
+              ? `${summary.scheduleBlocks} bloque(s) asignado(s)`
+              : "Se actualiza al generar horarios"
+          }
+          accent={(summary?.scheduleBlocks ?? 0) > 0 ? "green" : "amber"}
         />
         <StatCard
           icon={ShieldCheck}

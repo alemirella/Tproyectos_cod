@@ -18,7 +18,7 @@ import {
 } from "../../constants/timeBlocks.js";
 
 /**
- * Catálogo oficial HORALV: 7 días x 14 bloques = 98 franjas.
+ * Catálogo oficial HORALV: 7 días × 18 bloques = 126 franjas.
  * El admin puede ver el estado de cada franja en una matriz y regenerar
  * el catálogo si la BD quedó incompleta o desactualizada.
  */

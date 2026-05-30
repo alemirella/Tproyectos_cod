@@ -38,7 +38,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Grilla de disponibilidad docente (7 días × 14 bloques HORALV) */
+/* Grilla de disponibilidad docente (7 días × 18 bloques HORALV) */
 .grid-availability {
   display: grid;
   grid-template-columns: minmax(7.5rem, 9rem) repeat(7, minmax(2.75rem, 1fr));

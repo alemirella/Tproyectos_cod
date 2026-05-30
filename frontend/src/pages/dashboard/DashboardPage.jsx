@@ -34,8 +34,13 @@ const STATUS_ICONS = {
 
 const STATUS_VARIANT = {
   Completado: "success",
+  Validada: "info",
   "En progreso": "warning",
+  Parcial: "warning",
+  Observada: "warning",
+  Rechazada: "error",
   Fallido: "error",
+  Pendiente: "neutral",
 };
 
 function formatStatValue(key, value) {
@@ -52,6 +57,7 @@ export default function DashboardPage() {
   const [status, setStatus] = useState([]);
   const [activity, setActivity] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   const welcomeName = user?.name?.split(" ")[0] || "Admin";
 
@@ -64,7 +70,14 @@ export default function DashboardPage() {
       .then(([s, st, act]) => {
         setSummary(s);
         setStatus(st);
-        setActivity(act);
+        setActivity(Array.isArray(act) ? act : []);
+        setLoadError(null);
+      })
+      .catch(() => {
+        setLoadError("No se pudieron cargar los datos del dashboard.");
+        setSummary(null);
+        setStatus([]);
+        setActivity([]);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -87,6 +100,12 @@ export default function DashboardPage() {
           Resumen general del sistema de gestión académica.
         </p>
       </div>
+
+      {loadError && (
+        <Card className="border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {loadError}
+        </Card>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
@@ -127,7 +146,9 @@ export default function DashboardPage() {
                     </div>
                     <span className="text-sm font-medium text-gray-800">{item.label}</span>
                   </div>
-                  <Badge variant="success">{item.status}</Badge>
+                  <Badge variant={item.ok === false ? "warning" : "success"}>
+                    {item.status}
+                  </Badge>
                 </li>
               );
             })}
@@ -171,12 +192,19 @@ export default function DashboardPage() {
           <h3 className="text-base font-semibold text-gray-900">Actividad reciente</h3>
           <button
             type="button"
+            onClick={() => navigate("/enrollments")}
             className="shrink-0 text-sm font-medium text-sgoha-secondary hover:text-blue-700"
           >
-            Ver todo
+            Ver matrículas
           </button>
         </div>
 
+        {activity.length === 0 ? (
+          <p className="px-6 py-8 text-center text-sm text-gray-500">
+            Aún no hay actividad registrada en el sistema.
+          </p>
+        ) : (
+          <>
         <div className="divide-y divide-gray-100 md:hidden">
           {activity.map((row) => (
             <div key={row.id} className="space-y-2 px-4 py-4">
@@ -240,6 +268,8 @@ export default function DashboardPage() {
             </tbody>
           </table>
         </div>
+          </>
+        )}
       </Card>
     </div>
   );

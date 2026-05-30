@@ -1,13 +1,18 @@
 /**
  * Bloques académicos oficiales HORALV (frontend).
  * Espejo de `backend/src/constants/timeBlocks.js`.
- * Mantener ambos archivos sincronizados.
+ * Fuente única de verdad: 18 franjas por día × 7 días = 126 franjas semanales.
+ * No calcular ni modificar minutos — usar exactamente esta lista.
  */
 export const TIME_BLOCKS = [
   { startTime: "07:00", endTime: "07:44", label: "07:00 - 07:44" },
   { startTime: "07:45", endTime: "08:29", label: "07:45 - 08:29" },
   { startTime: "08:40", endTime: "09:24", label: "08:40 - 09:24" },
   { startTime: "09:25", endTime: "10:09", label: "09:25 - 10:09" },
+  { startTime: "10:20", endTime: "11:04", label: "10:20 - 11:04" },
+  { startTime: "11:05", endTime: "11:49", label: "11:05 - 11:49" },
+  { startTime: "12:00", endTime: "12:44", label: "12:00 - 12:44" },
+  { startTime: "12:45", endTime: "13:29", label: "12:45 - 13:29" },
   { startTime: "14:00", endTime: "14:44", label: "14:00 - 14:44" },
   { startTime: "14:45", endTime: "15:29", label: "14:45 - 15:29" },
   { startTime: "15:40", endTime: "16:24", label: "15:40 - 16:24" },
@@ -39,6 +44,9 @@ export const DAY_FULL_LABEL = DAYS.reduce((acc, d) => {
 /** Duración del bloque académico (minutos). */
 export const BLOCK_MINUTES = 44;
 
+/** Total de franjas semanales oficiales. */
+export const WEEKLY_SLOT_COUNT = DAYS.length * TIME_BLOCKS.length;
+
 /** ID estable de una franja. */
 export function slotKey(day, startTime, endTime) {
   return `${day}|${startTime}|${endTime}`;
@@ -46,9 +54,6 @@ export function slotKey(day, startTime, endTime) {
 
 /**
  * Estadísticas precisas a partir de una lista de slots seleccionados.
- * - blocks: cantidad de bloques marcados
- * - minutes: minutos totales (cada bloque dura BLOCK_MINUTES)
- * - hours: equivalente en horas con dos decimales
  */
 export function countAvailabilityStats(availability = []) {
   const blocks = availability.length;
@@ -57,7 +62,7 @@ export function countAvailabilityStats(availability = []) {
   return { blocks, minutes, hours };
 }
 
-/** Texto legible de horas disponibles (ej. "9 h disponibles", "9 h 48 min disponibles"). */
+/** Texto legible de horas disponibles. */
 export function formatAvailabilityDuration(availability = []) {
   const { blocks, minutes } = countAvailabilityStats(availability);
   if (blocks === 0) return "0 h disponibles";
@@ -69,13 +74,18 @@ export function formatAvailabilityDuration(availability = []) {
 
 /**
  * Turnos oficiales HORALV para agrupar la grilla y acciones rápidas.
- * Los startTime deben coincidir con TIME_BLOCKS.
+ * Los startTime deben coincidir exactamente con TIME_BLOCKS.
  */
 export const AVAILABILITY_SHIFTS = [
   {
     id: "MORNING",
     label: "Mañana",
     startTimes: ["07:00", "07:45", "08:40", "09:25"],
+  },
+  {
+    id: "MIDDAY",
+    label: "Mediodía",
+    startTimes: ["10:20", "11:05", "12:00", "12:45"],
   },
   {
     id: "AFTERNOON",
@@ -96,3 +106,10 @@ export function blocksForShift(shiftId) {
   const allowed = new Set(shift.startTimes);
   return TIME_BLOCKS.filter((b) => allowed.has(b.startTime));
 }
+
+/** Separadores visuales en grillas semanales (índice = fila después de la cual insertar). */
+export const GRID_TURN_LABELS = [
+  { afterIndex: 4, label: "Mediodía" },
+  { afterIndex: 8, label: "Tarde" },
+  { afterIndex: 12, label: "Noche" },
+];

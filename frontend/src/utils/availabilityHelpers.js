@@ -17,7 +17,7 @@ export function buildSlotsForShift(shiftId) {
   );
 }
 
-/** Todos los slots oficiales (7 días × 14 bloques). */
+/** Todos los slots oficiales (7 días × 18 bloques = 126). */
 export function buildSlotsForFullWeek() {
   return DAYS.flatMap((d) =>
     TIME_BLOCKS.map((b) => ({

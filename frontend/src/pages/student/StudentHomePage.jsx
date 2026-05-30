@@ -74,11 +74,13 @@ export default function StudentHomePage() {
               : "Sigue los pasos en Mi matrícula"
           }
           accent={
-            status === "VALID" || status === "CONFIRMED"
+            status === "CONFIRMED"
               ? "green"
-              : status === "INVALID"
-                ? "red"
-                : "slate"
+              : status === "VALID" || status === "VALIDATED"
+                ? "green"
+                : status === "INVALID" || status === "REJECTED"
+                  ? "red"
+                  : "slate"
           }
         />
         <StatCard
@@ -96,9 +98,13 @@ export default function StudentHomePage() {
         <StatCard
           icon={Clock}
           label="HORARIO GENERADO"
-          value="Pendiente"
-          hint="Disponible al cierre del período"
-          accent="amber"
+          value={summary?.scheduleStatus ?? "Pendiente"}
+          hint={
+            (summary?.scheduleBlocks ?? 0) > 0
+              ? `${summary.scheduleBlocks} bloque(s) en tu horario`
+              : "Disponible tras generación administrativa"
+          }
+          accent={(summary?.scheduleBlocks ?? 0) > 0 ? "green" : "amber"}
         />
       </div>
 

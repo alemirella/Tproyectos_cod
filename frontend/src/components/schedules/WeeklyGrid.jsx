@@ -1,12 +1,10 @@
 import {
   DAYS as AVAILABILITY_DAYS,
   TIME_BLOCKS,
+  GRID_TURN_LABELS,
 } from "../../constants/timeBlocks.js";
 
-const TURN_LABELS = [
-  { afterIndex: 3, label: "Tarde" },
-  { afterIndex: 7, label: "Noche" },
-];
+const TURN_LABELS = GRID_TURN_LABELS;
 
 function studentCount(assignment) {
   const list = assignment.students;
