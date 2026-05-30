@@ -1,5 +1,6 @@
 import Teacher from "../models/Teacher.js";
 import User from "../models/User.js";
+import { sanitizeAvailabilitySlots } from "../constants/timeBlocks.js";
 import {
   ensureUserAccount,
   syncUserFromProfile,
@@ -131,7 +132,7 @@ export const teacherService = {
   updateAvailability: (id, availability) =>
     Teacher.findByIdAndUpdate(
       id,
-      { availability: availability || [] },
+      { availability: sanitizeAvailabilitySlots(availability) },
       { new: true, runValidators: true }
     ).populate(populateOpts),
 

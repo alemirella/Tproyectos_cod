@@ -11,6 +11,7 @@ import studentRoutes from "./routes/student.routes.js";
 import timeslotRoutes from "./routes/timeslot.routes.js";
 import enrollmentRoutes from "./routes/enrollment.routes.js";
 import scheduleRoutes from "./routes/schedule.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 
 import { notFound, errorHandler } from "./middlewares/error.middleware.js";
 
@@ -41,6 +42,7 @@ app.use("/api/students", studentRoutes);
 app.use("/api/timeslots", timeslotRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/schedules", scheduleRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

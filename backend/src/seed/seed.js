@@ -75,7 +75,7 @@ await Student.create({
   approvedCourses: [c2._id],
 });
 
-// Genera las 98 franjas oficiales HORALV (7 días x 14 bloques).
+// Genera las 126 franjas oficiales HORALV (7 días × 18 bloques).
 const allSlots = buildAllTimeSlots().map((s) => ({ ...s, active: true }));
 await TimeSlot.insertMany(allSlots, { ordered: false });
 
