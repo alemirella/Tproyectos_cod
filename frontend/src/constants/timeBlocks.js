@@ -73,43 +73,53 @@ export function formatAvailabilityDuration(availability = []) {
 }
 
 /**
- * Turnos oficiales HORALV para agrupar la grilla y acciones rápidas.
- * Los startTime deben coincidir exactamente con TIME_BLOCKS.
+ * Agrupación visual de franjas (3 turnos). No altera TIME_BLOCKS.
+ * Mañana incluye 07:00–13:29; receso 13:29→14:00 sin franja.
  */
-export const AVAILABILITY_SHIFTS = [
+export const TIME_GROUPS = [
   {
-    id: "MORNING",
+    key: "MORNING",
     label: "Mañana",
-    startTimes: ["07:00", "07:45", "08:40", "09:25"],
+    startTimes: [
+      "07:00",
+      "07:45",
+      "08:40",
+      "09:25",
+      "10:20",
+      "11:05",
+      "12:00",
+      "12:45",
+    ],
   },
   {
-    id: "MIDDAY",
-    label: "Mediodía",
-    startTimes: ["10:20", "11:05", "12:00", "12:45"],
-  },
-  {
-    id: "AFTERNOON",
+    key: "AFTERNOON",
     label: "Tarde",
     startTimes: ["14:00", "14:45", "15:40", "16:25"],
   },
   {
-    id: "NIGHT",
+    key: "NIGHT",
     label: "Noche",
     startTimes: ["17:20", "18:05", "19:00", "19:45", "20:30", "21:15"],
   },
 ];
 
+/** Alias usado por AvailabilityGrid y acciones rápidas. */
+export const AVAILABILITY_SHIFTS = TIME_GROUPS.map((g) => ({
+  id: g.key,
+  label: g.label,
+  startTimes: g.startTimes,
+}));
+
 /** Bloques HORALV que pertenecen a un turno. */
 export function blocksForShift(shiftId) {
-  const shift = AVAILABILITY_SHIFTS.find((s) => s.id === shiftId);
+  const shift = TIME_GROUPS.find((s) => s.key === shiftId);
   if (!shift) return [];
   const allowed = new Set(shift.startTimes);
   return TIME_BLOCKS.filter((b) => allowed.has(b.startTime));
 }
 
-/** Separadores visuales en grillas semanales (índice = fila después de la cual insertar). */
+/** Separadores en WeeklyGrid: solo Mañana (inicio), Tarde y Noche. */
 export const GRID_TURN_LABELS = [
-  { afterIndex: 4, label: "Mediodía" },
   { afterIndex: 8, label: "Tarde" },
   { afterIndex: 12, label: "Noche" },
 ];
