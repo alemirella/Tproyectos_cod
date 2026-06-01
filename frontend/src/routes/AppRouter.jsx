@@ -22,6 +22,7 @@ import TeachersPage from "../pages/teachers/TeachersPage.jsx";
 import TeacherAvailabilityAdminPage from "../pages/teachers/TeacherAvailabilityPage.jsx";
 import SchedulesPage from "../pages/schedules/SchedulesPage.jsx";
 import RestrictionsPage from "../pages/restrictions/RestrictionsPage.jsx";
+import SettingsPage from "../pages/settings/SettingsPage.jsx";
 
 // Cuenta compartida
 import AccountPage from "../pages/account/AccountPage.jsx";
@@ -85,7 +86,7 @@ export default function AppRouter() {
               element={<Navigate to="/schedules" replace />}
             />
             <Route path="/restrictions" element={<RestrictionsPage />} />
-            <Route path="/settings" element={<AdminPlaceholderPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
 
           {/* ============ Docente ============ */}
