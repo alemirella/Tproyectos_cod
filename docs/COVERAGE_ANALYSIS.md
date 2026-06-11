@@ -2,6 +2,16 @@
 
 > Ejecutar: `npm run test:coverage` desde la raíz.
 
+## Reportes generados
+
+| Archivo | Descripción |
+|---------|-------------|
+| `tests/reports/coverage/index.html` | Índice con enlaces a todos los reportes |
+| `tests/reports/coverage/html/index.html` | **Reporte HTML consolidado** (todas las suites) |
+| `tests/reports/coverage/coverage-summary.json` | Porcentajes globales en JSON |
+
+Abrir en navegador: `npm run coverage:open`
+
 ## Meta consigna
 
 | Métrica | Objetivo | Estado |

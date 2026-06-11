@@ -44,4 +44,9 @@ export async function getToken(email = "admin-test@sgoha.edu", password = "12345
   return res.body.data?.token;
 }
 
+export async function getAdminToken() {
+  await seedAdmin();
+  return getToken("admin-test@sgoha.edu");
+}
+
 export { app };

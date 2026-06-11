@@ -32,4 +32,19 @@ describe("courseService — MSW", () => {
     server.use(errorHandlers.emptyList);
     expect(await courseService.list()).toEqual([]);
   });
+
+  test("getCourseById retorna curso", async () => {
+    const course = await courseService.getCourseById("c1");
+    expect(course.code).toBe("CS101");
+  });
+
+  test("updateCourse actualiza nombre", async () => {
+    const updated = await courseService.updateCourse("c1", { name: "Nuevo nombre" });
+    expect(updated.name).toBe("Nuevo nombre");
+  });
+
+  test("deleteCourse desactiva curso", async () => {
+    const result = await courseService.deleteCourse("c1");
+    expect(result.course.active).toBe(false);
+  });
 });

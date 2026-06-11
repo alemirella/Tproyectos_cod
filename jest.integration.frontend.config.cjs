@@ -11,7 +11,7 @@ module.exports = {
   },
   moduleDirectories: ["node_modules", "<rootDir>/frontend/node_modules"],
   coverageDirectory: "<rootDir>/tests/reports/coverage/frontend-integration",
-  coverageReporters: ["text", "lcov", "html"],
+  coverageReporters: ["text", "lcov", "html", "json"],
   collectCoverageFrom: ["frontend/src/services/**/*.js", "frontend/src/config/**/*.js"],
   testTimeout: 15000,
 };

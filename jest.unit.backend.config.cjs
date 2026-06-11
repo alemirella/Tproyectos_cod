@@ -8,7 +8,7 @@ module.exports = {
   setupFilesAfterEnv: ["<rootDir>/tests/setup/backend/dbSetup.js"],
   testMatch: ["<rootDir>/tests/unit/backend/**/*.test.js"],
   coverageDirectory: "<rootDir>/tests/reports/coverage/backend-unit",
-  coverageReporters: ["text", "lcov", "html"],
+  coverageReporters: ["text", "lcov", "html", "json"],
   collectCoverageFrom: [
     "backend/src/services/**/*.js",
     "backend/src/middlewares/**/*.js",

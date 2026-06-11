@@ -12,7 +12,7 @@ module.exports = {
   },
   moduleDirectories: ["node_modules", "<rootDir>/frontend/node_modules"],
   coverageDirectory: "<rootDir>/tests/reports/coverage/frontend-unit",
-  coverageReporters: ["text", "lcov", "html"],
+  coverageReporters: ["text", "lcov", "html", "json"],
   collectCoverageFrom: [
     "frontend/src/components/**/*.{js,jsx}",
     "frontend/src/utils/**/*.{js,jsx}",
