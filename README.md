@@ -354,7 +354,7 @@ El sistema usa **18 franjas por día** y **126 franjas semanales** (7 días × 1
 | Control de versiones | Git + GitHub |
 | Gestión de proyecto | Scrum / Jira |
 | IDE | Cursor |
-| Testing | Jest (backend) |
+| Testing | Jest + Supertest + RTL + MSW + Cypress (carpeta `tests/` en raíz) |
 
 **Stack resumido:** MERN + Tailwind + Docker.
 
@@ -766,10 +766,14 @@ La gestión se organizó por módulos funcionales: autenticación, entidades aca
 ### Reproducir pruebas
 
 ```bash
-# Tests del backend (carpeta backend/tests — validación PoC)
-cd backend
+# Desde la raíz del repositorio (NO dentro de backend/frontend)
+npm install
 npm test
+npm run test:coverage
+npm run test:co2
 ```
+
+Ver [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) para Cypress, aceptación y E2E.
 
 Para probar generación con la API actual:
 
