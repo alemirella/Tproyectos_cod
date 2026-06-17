@@ -6,7 +6,8 @@
 
 | ID | Regla | Archivo | Línea | Severidad | Hallazgo | Impacto | Corrección | Estado | Evidencia |
 | -- | ----- | ------- | ----: | --------- | -------- | ------- | ---------- | ------ | --------- |
-| SON-001 | — | Global | — | Info | Métricas de panel no extraíbles sin SonarScanner | Calidad no medida en gate | Ejecutar guía Sonar | 🔵 Requiere credencial externa | [GUIA_EJECUCION_SONARQUBE.md](../reportes/sonar/GUIA_EJECUCION_SONARQUBE.md) |
+| SON-001 | quality gate | Proyecto `sgoha` | — | Info | Ejecución Sonar local realizada; gate en `OK` | Control de calidad habilitado | Mantener ejecución en CI | ✅ Corregido | `reportes/sonar/SONARQUBE_LOCAL_EXECUTION.md` |
+| SON-004 | seguridad/fiabilidad | Proyecto `sgoha` | — | Alta | Sonar reporta 3 vulnerabilidades y 4 bugs | Riesgo técnico acumulado | Plan de remediación por severidad | 🟠 Riesgo medio | `reportes/sonar/SONARQUBE_LOCAL_EXECUTION.md` |
 | SON-002 | cobertura | `csp.service.js` | — | Media | Cobertura baja en motor CSP | Horarios con regresiones | Ampliar tests unitarios | 🟡 Observación | `coverage-summary.md` |
 | SON-003 | eslint | `frontend/` | — | Baja | 3 warnings `exhaustive-deps` | Re-renders menores | Revisar dependencias hooks | 🟡 | `frontend-quality.txt` |
 

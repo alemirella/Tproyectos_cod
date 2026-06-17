@@ -17,7 +17,7 @@ Análisis SonarQube · Interpretación de métricas · Análisis OWASP · Valida
 | **Equipo responsable** | QA/Arquitectura/DevSecOps SGOHA |
 | **Stack validado** | React 19 + Vite 8 + Tailwind 4 · Node/Express 5 · MongoDB/Mongoose 8 · JWT · Jest · Cypress |
 | **Entorno de evaluación** | macOS local + workflows GitHub Actions |
-| **Estado SonarQube al cierre** | 🔵 Requiere ejecución de plataforma externa (explicado en 7.2.a) |
+| **Estado SonarQube al cierre** | ✅ Ejecutado localmente + Quality Gate disponible (explicado en 7.2.a) |
 
 ---
 
@@ -40,12 +40,12 @@ Consolidar un expediente técnico **reproducible y verificable** del nivel de ca
 - ✅ Backend sin vulnerabilidades auditables tras actualización de `qs` (`6.15.2`).
 - ✅ Frontend con ESLint sin errores bloqueantes (advertencias documentadas).
 - ⚙️ Flujo CI/CD operativo para lint, tests, cobertura, seguridad y accesibilidad.
-- 🔵 SonarQube no ejecutado en este entorno al cierre por dependencia de Docker/credenciales.
+- ✅ SonarQube ejecutado localmente con análisis real (`projectKey: sgoha`) y Quality Gate consultable.
 
 ### Mejoras implementadas en esta iteración
 
 - ✅ Refuerzo documental integral del punto 7.2 por apartados conceptuales y técnicos.
-- ✅ Diagnóstico explícito del estado SonarQube (local + workflow).
+- ✅ Ejecución real de SonarQube local y publicación de métricas verificables.
 - ✅ Cierre de trazabilidad entre informe principal y evidencias/guías de reproducción.
 
 ---
@@ -107,6 +107,16 @@ flowchart LR
 
 SonarQube permite medir de forma integral la calidad de código (bugs, smells, duplicación, deuda técnica, seguridad estática y Quality Gate) sobre `frontend` y `backend`, usando cobertura LCOV como entrada.
 
+### Subapartados del 7.2.a (concepto + propósito + logro)
+
+| Subapartado | Qué hace | Qué se hizo en SGOHA | Logro |
+| ---------- | -------- | -------------------- | ----- |
+| 7.2.a.1 Configuración | Define alcance de análisis | `sonar-project.properties` validado | ✅ Fuentes/tests/cobertura correctamente mapeadas |
+| 7.2.a.2 Entorno local | Habilita Sonar reproducible | `docker-compose.sonar.yml` con Postgres | ✅ Stack local operativo |
+| 7.2.a.3 Ejecución | Corre análisis estático real | Scanner dockerizado contra `localhost:9000` | ✅ Reporte subido a Sonar |
+| 7.2.a.4 Métricas | Entrega KPIs de calidad | API de `measures`, `issues`, `quality gate` consultadas | ✅ Métricas trazables y verificadas |
+| 7.2.a.5 Integración | Inserta control en pipeline | `sonar.yml` condicionado por secretos | ⚙️ Listo para CI continuo |
+
 ### Configuración validada
 
 - Archivo: [`sonar-project.properties`](../sonar-project.properties)
@@ -129,36 +139,43 @@ SonarQube permite medir de forma integral la calidad de código (bugs, smells, d
 | `backend-quality.txt` | ✅ Generado |
 | `coverage-summary.md` | ✅ Generado (30,3 % líneas) |
 | LCOV por suite | ✅ Generado |
+| `SONARQUBE_LOCAL_EXECUTION.md` | ✅ Registro de ejecución real y métricas API |
 
 ### Verificación explícita de ejecución SonarQube (real)
 
-**Fecha/hora de verificación:** 2026-06-17 18:17:09 -05
+**Fecha/hora de verificación final:** 2026-06-17 18:24 -05
 
 | Verificación | Resultado real | Diagnóstico |
 | ------------ | -------------- | ----------- |
-| `docker compose -f docker-compose.sonar.yml ps` | `Cannot connect to the Docker daemon...` | Docker local no está activo |
-| `curl -I http://localhost:9000` | sin respuesta útil en entorno actual | Sonar local no está levantado |
-| `sonar-scanner --version` | `command not found: sonar-scanner` | Scanner no instalado en máquina |
-| Workflow `.github/workflows/sonar.yml` | condicionado por `if: secrets.SONAR_TOKEN != ''` | Sin token no corre análisis |
+| `docker compose -f docker-compose.sonar.yml up -d` | servicios levantados | ✅ SonarQube y PostgreSQL iniciados |
+| `docker compose -f docker-compose.sonar.yml ps` | `sgoha-sonar-db` healthy / `sgoha-sonarqube` up | ✅ Stack operativo |
+| `curl http://localhost:9000/api/system/status` | `status=UP` | ✅ API de SonarQube disponible |
+| `docker run ... sonarsource/sonar-scanner-cli ...` | `ANALYSIS SUCCESSFUL` | ✅ Análisis ejecutado sobre `sgoha` |
+| `api/qualitygates/project_status?projectKey=sgoha` | `status: OK` | ✅ Quality Gate consultado |
+| Workflow `.github/workflows/sonar.yml` | condicionado por `SONAR_TOKEN` | ⚙️ En CI depende de secretos |
 
 ### Estado Sonar al cierre
 
-- 🔵 **Requiere ejecución en plataforma externa** (GitHub con `SONAR_TOKEN`) o activar Docker local + instalar scanner.
-- 🧪 **Ejecución reproducible preparada**: configuración, guía y rutas LCOV están listas.
+- ✅ **Ejecución local completada** con análisis real y resultados consultables en dashboard local.
+- ⚙️ **Ejecución CI preparada**; en GitHub seguirá dependiendo de `SONAR_TOKEN`/`SONAR_HOST_URL` o `SONAR_ORGANIZATION`.
 
 ### Métricas Sonar (matriz del apartado)
 
 | Métrica | Resultado inicial | Resultado posterior | Estado | Interpretación | Evidencia |
 | ------- | ----------------: | ------------------: | ------ | -------------- | --------- |
-| Quality Gate | — | — | 🔵 Requiere SonarQube/Cloud | No inferible desde ESLint/Jest | SON-01 |
-| Bugs | — | — | 🔵 Requiere SonarQube/Cloud | Hallazgo estático de defectos lógicos | SON-02 |
-| Vulnerabilities | — | — | 🔵 Requiere SonarQube/Cloud | Complementa npm audit | SON-02 |
-| Security Hotspots | — | — | 🔵 Requiere SonarQube/Cloud | Revisión guiada por analizador | SON-02 |
-| Code Smells | — | — | 🔵 Requiere SonarQube/Cloud | Deuda de mantenibilidad | SON-02 |
-| Duplicated Lines | — | — | 🔵 Requiere SonarQube/Cloud | Riesgo de mantenimiento | SON-02 |
-| Coverage (LCOV importable) | — | 30,3 % | 🟡 | Cobertura baja en lógica crítica CSP/horarios | `coverage-summary.md` |
-| Reliability/Security/Maintainability | — | — | 🔵 Requiere SonarQube/Cloud | Ratings dependen del panel | SON-01 |
-| Technical Debt / Complexity | — | — | 🔵 Requiere SonarQube/Cloud | Métrica derivada del análisis estático | SON-02 |
+| Quality Gate | No medido | `OK` | 🟢 Conforme | El proyecto pasa el gate configurado en Sonar | API `project_status` |
+| Bugs | No medido | 4 | 🟡 Observación | Defectos de confiabilidad por priorizar | API `measures` |
+| Vulnerabilities | No medido | 3 | 🟠 Riesgo medio | Hallazgos de seguridad en código a corregir | API `measures` |
+| Security Hotspots | No medido | 7 | 🟡 Revisión | Requiere validación manual en panel | API `measures` |
+| Code Smells | No medido | 777 | 🟠 Deuda técnica | Alto volumen de mantenibilidad | API `measures` |
+| Duplicated Lines Density | No medido | 1,4 % | 🟢 Controlado | Duplicación baja relativa | API `measures` |
+| Coverage (Sonar) | No medido | 15,5 % | 🟠 Riesgo alto | Cobertura efectiva en fuentes analizadas aún baja | API `measures` + LCOV |
+| Reliability Rating | No medido | 4.0 (D) | 🟠 Riesgo medio | Debe mejorar corrección de bugs | API `measures` |
+| Security Rating | No medido | 5.0 (E) | 🔴 Riesgo alto | Priorizar vulnerabilidades/hotspots | API `measures` |
+| Maintainability Rating | No medido | 1.0 (A) | 🟢 Conforme | Deuda relativa mantenible pese a smells | API `measures` |
+| Technical Debt (`sqale_index`) | No medido | 3794 | 🟡 Observación | Deuda acumulada a planificar por sprint | API `measures` |
+| Cognitive Complexity | No medido | 1555 | 🟠 Riesgo medio | Complejidad alta en módulos extensos | API `measures` |
+| Issues totales | No medido | 784 | 🟡 Observación | Requiere estrategia de priorización por severidad | API `issues/search` |
 
 ### Flujo Sonar en la arquitectura de entrega
 
@@ -175,7 +192,8 @@ flowchart LR
 
 ### Conclusión del apartado 7.2.a
 
-El análisis Sonar está **correctamente diseñado y listo para ejecutarse**, pero **no está corriendo actualmente** en este entorno por falta de ejecución operativa (Docker/Scanner local o `SONAR_TOKEN` en GitHub).
+Se logró el ciclo completo del apartado Sonar: **configuración validada, stack local levantado, análisis ejecutado y métricas obtenidas**.  
+Resultado final del apartado: ✅ SonarQube funcional en local y listo para continuidad en CI con secretos.
 
 ---
 
@@ -184,6 +202,17 @@ El análisis Sonar está **correctamente diseñado y listo para ejecutarse**, pe
 ### Concepto del apartado
 
 No se trata de listar números aislados, sino de explicar su **impacto técnico real en SGOHA**: estabilidad funcional, riesgo de regresión, seguridad operativa y mantenibilidad.
+
+### Subapartados del 7.2.b (concepto + propósito + logro)
+
+| Subapartado | Qué evalúa | Resultado logrado |
+| ---------- | ---------- | ----------------- |
+| Calidad | Bugs/smells/complejidad/deuda | ✅ Interpretación conectada a módulos críticos |
+| Confiabilidad | tests, cobertura, ramas | ✅ Riesgo funcional cuantificado para matrícula/horarios |
+| Seguridad | vuln deps + análisis estático | ✅ Riesgo técnico priorizado por severidad |
+| Accesibilidad | violaciones automáticas + checklist | ✅ Estado mixto (automatizado + humano) documentado |
+| Usabilidad | instrumento SUS y lectura de puntajes | ✅ Infraestructura de medición completada |
+| CI/CD | salud del pipeline | ✅ Trazabilidad técnica en workflows |
 
 ### Lectura técnica de indicadores principales
 
@@ -201,7 +230,7 @@ No se trata de listar números aislados, sino de explicar su **impacto técnico 
 - Una cobertura baja en matrícula/restricciones puede habilitar escenarios de inscripción inválida.
 - Un control de lint estable reduce errores triviales en formularios y rutas.
 - Un backend con dependencias saneadas disminuye exposición a fallos de disponibilidad.
-- La ausencia temporal de Quality Gate Sonar limita la gobernanza de deuda técnica.
+- El Quality Gate en `OK` confirma capacidad de control, pero los 784 issues y ratings D/E muestran deuda de calidad y seguridad que debe priorizarse.
 
 ### Priorización cualitativa
 
@@ -225,6 +254,10 @@ quadrantChart
 
 Ver detalle completo en [`COVERAGE_ANALYSIS.md`](./COVERAGE_ANALYSIS.md).
 
+### Conclusión del apartado 7.2.b
+
+Se logró interpretar métricas con enfoque técnico y de negocio académico: ya no solo se reportan números, sino el impacto directo en matrícula, horarios, estabilidad y riesgo operacional del sistema.
+
 ---
 
 ## 7.2.c Análisis OWASP
@@ -232,6 +265,16 @@ Ver detalle completo en [`COVERAGE_ANALYSIS.md`](./COVERAGE_ANALYSIS.md).
 ### Concepto del apartado
 
 Evaluar la postura de seguridad de SGOHA frente a riesgos OWASP (acceso, autenticación, misconfiguración, dependencias, excepciones y trazabilidad), combinando revisión de código y evidencia de ejecución.
+
+### Subapartados del 7.2.c (concepto + propósito + logro)
+
+| Subapartado | Qué hace | Logro en SGOHA |
+| ---------- | -------- | -------------- |
+| Superficie de ataque | Identifica vectores por capa | ✅ Frontend, backend y CI cubiertos |
+| Controles preventivos | Endurece app antes de explotar | ✅ Helmet/rate-limit/RBAC activos |
+| Cadena de suministro | Reduce riesgo de dependencias | ✅ `qs` corregido; frontend en seguimiento |
+| Seguridad automatizada | Escaneo estático/dinámico continuo | ⚙️ CodeQL y ZAP definidos |
+| Riesgo residual | Define qué queda abierto | ✅ Matriz con estado técnico y acción |
 
 ### Qué se implementó y qué cubre
 
@@ -272,6 +315,10 @@ flowchart TD
     E --> L[Registro seguro]
 ```
 
+### Conclusión del apartado 7.2.c
+
+Se consolidó una base DevSecOps funcional: controles preventivos en backend, auditoría de dependencias, escaneo estático y flujo DAST reproducible. El logro principal es pasar de seguridad declarativa a seguridad operativa verificable.
+
 ---
 
 ## 7.2.d Validación WCAG 2.2
@@ -279,6 +326,16 @@ flowchart TD
 ### Concepto del apartado
 
 Verificar que la interfaz cumpla criterios de accesibilidad con objetivo AA, tanto en pruebas automatizadas (axe/Lighthouse) como en revisión humana guiada.
+
+### Subapartados del 7.2.d (concepto + propósito + logro)
+
+| Subapartado | Qué hace | Logro en SGOHA |
+| ---------- | -------- | -------------- |
+| Perceptible | Comprensión visual y semántica | ✅ `lang`, estructura y reportes definidos |
+| Operable | Uso por teclado/foco/controles | ⚙️ Cobertura automática + checklist manual |
+| Comprensible | Mensajes y consistencia | ✅ Patrones de validación documentados |
+| Robusto | Compatibilidad con asistencia | ⚙️ ARIA y pruebas axe configuradas |
+| Evidencia | Prueba reproducible | ✅ Suite Cypress a11y por pantallas |
 
 ### Automatización implementada
 
@@ -323,6 +380,10 @@ mindmap
       Tecnologías de asistencia
 ```
 
+### Conclusión del apartado 7.2.d
+
+Se alcanzó una validación híbrida madura (automatización + protocolo manual). El logro real es contar con pruebas accesibles repetibles por módulo y una ruta clara para cerrar cumplimiento AA con evidencia humana.
+
 ---
 
 ## 7.2.e Análisis SUS
@@ -330,6 +391,16 @@ mindmap
 ### Concepto del apartado
 
 SUS mide usabilidad percibida con un instrumento estandarizado (10 preguntas, escala 1–5). En este proyecto se implementó el sistema completo de captura/cálculo, evitando simular usuarios reales.
+
+### Subapartados del 7.2.e (concepto + propósito + logro)
+
+| Subapartado | Qué hace | Logro en SGOHA |
+| ---------- | -------- | -------------- |
+| Instrumento | Define preguntas y escala | ✅ Cuestionario formal en español |
+| Datos | Estandariza captura | ✅ CSV plantilla y anonimización |
+| Cálculo | Automatiza fórmula SUS | ✅ Script genera JSON y Markdown |
+| Piloto | Valida metodología sin falsear resultados | ✅ Ejemplo demostrativo explícito |
+| Aplicación real | Ejecuta con participantes | 🧑‍💻 Protocolo listo para campo |
 
 ### Qué quedó completo
 
@@ -363,6 +434,10 @@ flowchart LR
     P --> I[Interpretacion]
     I --> M[Mejoras UX]
 ```
+
+### Conclusión del apartado 7.2.e
+
+Se completó el sistema de medición SUS de extremo a extremo (instrumento, datos, cálculo, protocolo e interpretación). Queda únicamente la aplicación con usuarios reales, que es una validación humana posterior y no una brecha técnica del expediente.
 
 ---
 
@@ -405,7 +480,7 @@ flowchart LR
 - ✅ Automatización de accesibilidad con Cypress+axe por pantallas clave.
 - ✅ Instrumentación SUS completa (cuestionario + script + protocolo).
 - ✅ Informe técnico 7.2 ampliado con explicación conceptual por apartado.
-- ✅ Verificación formal del estado SonarQube y diagnóstico operativo.
+- ✅ Ejecución real de SonarQube local con métricas y Quality Gate.
 
 ---
 
@@ -416,7 +491,7 @@ flowchart LR
 | Pruebas automatizadas | Parcial | 208 tests ejecutables |
 | Lint en CI | Informativo | Bloqueante en errores |
 | Seguridad HTTP | Básica | Endurecida y documentada |
-| Sonar | Solo intención | Configuración + guía + diagnóstico real |
+| Sonar | Solo intención | Configuración + ejecución real + métricas API |
 | Accesibilidad | Casos aislados | Suite a11y estructurada + checklist |
 | SUS | Sin instrumentación | Flujo completo implementado |
 | Informe 7.2 | Estructura inicial | Expediente integral detallado |
@@ -442,7 +517,7 @@ flowchart LR
 
 | Riesgo | Nivel | Tratamiento |
 | ------ | ----- | ----------- |
-| Sonar sin ejecución efectiva en este entorno | 🟡 | Activar Docker+scanner o secretos GitHub |
+| Continuidad Sonar en CI depende de secretos | 🟡 | Configurar `SONAR_TOKEN` y host/organization en GitHub |
 | Cobertura baja en módulos CSP/horarios | 🟠 | Incrementar pruebas de dominio e integración |
 | Hallazgos npm frontend en seguimiento | 🟡 | Actualización controlada y pruebas de regresión |
 | SUS sin participantes reales cargados | 🔵 | Aplicar protocolo y ejecutar script con CSV real |
@@ -454,16 +529,15 @@ flowchart LR
 
 El punto 7.2 queda técnicamente consolidado y explicativo: cada apartado (a–e) tiene concepto, aplicación al sistema, evidencias y estado.
 
-El único bloqueo operativo relevante de cierre total es SonarQube en ejecución real de panel, que depende de:
+SonarQube ya quedó ejecutado localmente con resultado real (`projectKey: sgoha`, Quality Gate `OK`), por lo que el expediente supera la fase de preparación y entra en fase de mejora continua basada en métricas.
 
-1. levantar Docker local + instalar `sonar-scanner`, o  
-2. configurar secretos (`SONAR_TOKEN` y, según caso, `SONAR_HOST_URL`/`SONAR_ORGANIZATION`) en GitHub Actions.
+El cierre técnico final se centra en tres frentes: elevar cobertura efectiva, reducir issues de seguridad/calidad reportados por Sonar y completar validaciones humanas (WCAG manual y SUS real).
 
 ---
 
 ## Recomendaciones de cierre final
 
-1. **Activar SonarQube** y capturar evidencias SON-01, SON-02, SON-03.
+1. **Mantener SonarQube activo en CI** y capturar evidencias SON-01, SON-02, SON-03 en cada corte.
 2. Ejecutar checklist WCAG manual con evidencias de teclado/foco/zoom.
 3. Ejecutar SUS con muestra real y publicar `sus-results.json` real.
 4. Mantener ciclo CI/CD como puerta obligatoria para merge.

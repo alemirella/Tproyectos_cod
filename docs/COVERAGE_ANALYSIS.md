@@ -6,11 +6,11 @@
 
 | Concepto | Valor SGOHA | Interpretación |
 | -------- | ----------- | -------------- |
-| **Bugs (Sonar)** | Requiere SonarQube | Defectos confirmables por analizador; ESLint no sustituye |
-| **Code smells** | Requiere SonarQube | Duplicación de lógica en formularios admin — candidatos a hooks compartidos |
-| **Duplicación** | Requiere SonarQube | Patrones repetidos en páginas CRUD |
-| **Complejidad cognitiva** | Requiere SonarQube | `csp.service.js` y `StudentEnrollmentPage.jsx` son puntos calientes |
-| **Deuda técnica** | Requiere SonarQube | Proporcional a smells en motor CSP |
+| **Bugs (Sonar)** | 4 | Defectos confirmables por analizador; priorizar corrección por severidad |
+| **Code smells** | 777 | Deuda de mantenibilidad acumulada en módulos amplios |
+| **Duplicación** | 1,4 % | Duplicación controlada, no es el principal riesgo actual |
+| **Complejidad cognitiva** | 1555 | `csp.service.js` y páginas de matrícula siguen siendo puntos calientes |
+| **Deuda técnica** | 3794 (`sqale_index`) | Requiere plan de remediación incremental por sprint |
 | **Mantenibilidad** | ESLint 0 errores | 🟢 Frontend compilable sin deuda sintáctica bloqueante |
 
 ## Métricas de confiabilidad
@@ -57,7 +57,7 @@
 | Métrica | Estado |
 | ------- | ------ |
 | Jobs CI | lint, build, test, coverage, audit, a11y |
-| Sonar | Condicional (`SONAR_TOKEN`) |
+| Sonar | ✅ Ejecutado local + condicional en CI (`SONAR_TOKEN`) |
 | ZAP | Stack local o URL externa |
 | CD | Plantilla — no desplegado |
 
