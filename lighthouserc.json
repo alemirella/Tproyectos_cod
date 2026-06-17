@@ -1,0 +1,21 @@
+{
+  "ci": {
+    "collect": {
+      "url": ["http://localhost:5173/login"],
+      "numberOfRuns": 1,
+      "startServerCommand": "cd frontend && npm run preview -- --port 5173 --host",
+      "startServerReadyPattern": "Local:",
+      "startServerReadyTimeout": 120000
+    },
+    "assert": {
+      "assertions": {
+        "categories:accessibility": ["warn", { "minScore": 0.85 }],
+        "categories:best-practices": ["warn", { "minScore": 0.8 }]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": "docs/reportes/accessibility/lighthouse"
+    }
+  }
+}

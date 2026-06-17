@@ -10,6 +10,9 @@ node_modules/
 tests/.cache/
 tests/reports/
 coverage/
+docs/reportes/security/*.json
+docs/reportes/security/*.txt
+docs/reportes/accessibility/lighthouse/
 cypress/videos/
 cypress/screenshots/
 cypress/downloads/
