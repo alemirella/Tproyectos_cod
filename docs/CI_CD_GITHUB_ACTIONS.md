@@ -21,6 +21,17 @@ Documentación de pipelines, secretos y operación del flujo de integración y d
 4. **dependency-audit** — `npm audit --audit-level=high`; artifact `npm-audit-reports`
 5. **accessibility** — build + preview frontend + `npm run test:a11y` (Cypress + axe)
 
+## Workflow Security (`security.yml`)
+
+| Job | Descripción |
+| --- | ----------- |
+| `npm-audit` | Ejecuta `scripts/run-security-audit.sh`; sube JSON |
+| `secret-scan` | `git grep` patrones JWT/MONGO/password |
+| `zap-baseline-stack` | Mongo + backend + preview + ZAP en `:5173/login` (por defecto) |
+| `zap-baseline-external` | ZAP contra `TARGET_URL` o variable `ZAP_TARGET_URL` |
+
+Ver [`reportes/security/OWASP_ZAP_GUIDE.md`](reportes/security/OWASP_ZAP_GUIDE.md).
+
 ## Secretos requeridos
 
 ### SonarCloud (opción A)

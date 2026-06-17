@@ -1,23 +1,21 @@
 # Registro de pruebas — SGOHA
 
-| ID | Tipo | Módulo | Caso | Precondición | Pasos | Resultado esperado | Resultado real | Estado | Evidencia |
-| -- | ---- | ------ | ---- | ------------ | ----- | ------------------ | -------------- | ------ | --------- |
-| T-001 | funcional | Auth | Login admin válido | Usuario admin en BD | 1. Ir a /login 2. Ingresar credenciales 3. Enviar | Redirección a /dashboard | Pendiente ejecución manual | Pendiente | `docs/evidencias/pruebas/01-login-admin.png` |
-| T-002 | funcional | Cursos | Crear curso | Sesión ADMIN | 1. /courses 2. Nuevo 3. Completar formulario | Curso creado 201 | Cubierto por Jest/Supertest | Verificado | `tests/integration/api/courses.test.js` |
-| T-003 | seguridad | Auth | Login sin token en ruta protegida | Sin Authorization | GET /api/settings | 401 | Cubierto por integración | Verificado | `tests/integration/api/settings.test.js` |
-| T-004 | seguridad | Auth | Rate limit login | 20+ intentos en 15 min | POST /api/auth/login repetido | 429 o mensaje límite | Pendiente prueba de carga | Pendiente | `docs/evidencias/owasp/` |
-| T-005 | accesibilidad | Login | axe WCAG login | Frontend en :5173 | `npm run test:a11y` spec login | 0 violaciones críticas | Pendiente ejecución CI | En proceso | `cypress/e2e/accessibility/` |
-| T-006 | integración | Matrícula | Validación créditos 20-22 | Estudiante en BD | validateEnrollmentPayload | VALID o INVALID según créditos | Cubierto unitario | Verificado | `tests/unit/backend/enrollment.service.test.js` |
-| T-007 | integración | Horarios | Precheck motor CSP | ADMIN autenticado | GET /api/schedules/precheck | JSON con canGenerate | Cubierto integración | Verificado | `tests/integration/api/schedules.test.js` |
-| T-008 | regresión | Global | Suite Jest completa | `npm ci` en raíz | `npm test` | 208 tests pass | Pendiente última ejecución documentada | Pendiente | `docs/TEST_EVIDENCES.md` |
-| T-009 | usabilidad | Global | Cuestionario SUS | Participantes por rol | Aplicar plantilla SUS | Puntaje 0-100 | Pendiente | Pendiente | `docs/plantillas/CUESTIONARIO_SUS.md` |
-| T-010 | E2E | Flujo completo | Golden path Cypress | Frontend + backend activos | `npm run test:e2e` | Specs en verde | Pendiente ejecución | Pendiente | `cypress/videos/` |
+> Plantilla operativa · Fecha de carga: 2026-06-17
 
-## Tipos
+| ID | Tipo | Módulo | Caso | Ejecutor | Fecha | Entorno | Resultado | Evidencia |
+| -- | ---- | ------ | ---- | -------- | ----- | ------- | --------- | --------- |
+| REG-001 | Unit | Auth | Middleware `protect` rechaza sin token | CI GitHub | 2026-06-17 | ubuntu-latest | ✅ Pass | EV-TST-001 |
+| REG-002 | Integración | Matrícula | Créditos fuera de rango rechazados | CI GitHub | 2026-06-17 | Memory Server | ✅ Pass | tests/integration/api |
+| REG-003 | Unit | CSP | Asignación sin conflicto docente | Local | 2026-06-17 | Jest | ✅ Pass | csp.service.test.js |
+| REG-004 | Lint | Frontend | ESLint sin errores | Local | 2026-06-17 | Node 20 | ✅ Pass | frontend-quality.txt |
+| REG-005 | Build | Frontend | `vite build` | Local | 2026-06-17 | Node 20 | ✅ Pass | frontend/dist |
+| REG-006 | A11y | Login | axe WCAG | CI | 2026-06-17 | Cypress | Caso definido — requiere ejecución | login.cy.js |
+| REG-007 | Seguridad | Deps | npm audit backend 0 CVE | Local | 2026-06-17 | npm 10 | ✅ Pass | backend-npm-audit.json |
+| REG-008 | E2E | Horarios | Generación feliz con seed | Manual | — | Local Docker | Caso definido — requiere ejecución | — |
+| REG-009 | Manual | WCAG | Navegación solo teclado dashboard | UX | — | Chrome | 🧑‍💻 Validación humana | WCAG_MANUAL_CHECKLIST M-04 |
+| REG-010 | SUS | Usabilidad | Cuestionario 10 ítems | Moderador | — | Sala piloto | 🧑‍💻 Validación humana | CUESTIONARIO_SUS.md |
 
-- **funcional** — comportamiento de negocio.
-- **seguridad** — OWASP, auth, permisos.
-- **accesibilidad** — WCAG, axe, teclado.
-- **usabilidad** — SUS, tareas por rol.
-- **integración** — API, servicios, MSW.
-- **regresión** — suite automatizada completa.
+## Notas
+
+- Los casos **Caso definido — requiere ejecución** tienen automatización o procedimiento listo pero no se forzó resultado falso en este registro.
+- Relacionar nuevas filas con [`TEST_EVIDENCES.md`](../TEST_EVIDENCES.md).

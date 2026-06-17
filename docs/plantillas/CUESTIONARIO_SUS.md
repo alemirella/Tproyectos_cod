@@ -1,36 +1,36 @@
 # Cuestionario SUS — SGOHA
 
-**System Usability Scale (SUS)** — Brookes, 1996.
+## Propósito
 
-## Instrucciones para el participante
+Medir la usabilidad percibida del Sistema de Generación Óptima de Horarios Académicos (SGOHA) mediante la escala **System Usability Scale (SUS)**.
 
-Responda indicando su grado de acuerdo con cada afirmación sobre el sistema **SGOHA** (Sistema de Generación Óptima de Horarios Académicos), después de completar las tareas asignadas por su rol.
+## Consentimiento
 
-### Escala
+Participo de forma voluntaria. Mis respuestas se usarán solo con fines académicos, sin publicar mi nombre. Puedo abandonar la sesión en cualquier momento.
 
-| Valor | Significado |
-| ----- | ----------- |
-| 1 | Totalmente en desacuerdo |
-| 2 | En desacuerdo |
-| 3 | Neutral |
-| 4 | De acuerdo |
-| 5 | Totalmente de acuerdo |
+## Instrucciones
 
----
+1. Complete las tareas asignadas a su rol (ADMIN, TEACHER o STUDENT).
+2. Responda las 10 afirmaciones según su experiencia **inmediata**.
+3. Use la escala del 1 al 5 (1 = totalmente en desacuerdo, 5 = totalmente de acuerdo).
+4. No hay respuestas correctas o incorrectas.
 
 ## Datos del participante (anonimizados)
 
 | Campo | Valor |
 | ----- | ----- |
-| Código participante | P___ |
-| Rol evaluado | ADMIN / TEACHER / STUDENT |
-| Fecha | ____-__-__ |
-| Versión del sistema | 2.0.0 |
-| Commit / rama | _________________ |
+| Código participante | P___ (ej. P001) |
+| Rol | ADMIN / TEACHER / STUDENT |
+| Fecha | ____/____/________ |
+| Tareas realizadas | (marcar en hoja del moderador) |
 
----
+## Escala 1–5
 
-## Afirmaciones
+| 1 | 2 | 3 | 4 | 5 |
+| - | - | - | - | - |
+| Totalmente en desacuerdo | | Neutral | | Totalmente de acuerdo |
+
+## Preguntas
 
 | # | Afirmación | 1 | 2 | 3 | 4 | 5 |
 | - | ---------- | - | - | - | - | - |
@@ -38,52 +38,24 @@ Responda indicando su grado de acuerdo con cada afirmación sobre el sistema **S
 | 2 | Encontré el sistema innecesariamente complejo. | | | | | |
 | 3 | Pensé que el sistema era fácil de usar. | | | | | |
 | 4 | Creo que necesitaría apoyo técnico para usar este sistema. | | | | | |
-| 5 | Consideré que las funciones del sistema estaban bien integradas. | | | | | |
-| 6 | Pensé que había demasiada inconsistencia en el sistema. | | | | | |
-| 7 | Imagino que la mayoría de las personas aprenderían a usar este sistema rápidamente. | | | | | |
-| 8 | Encontré el sistema muy incómodo o difícil de usar. | | | | | |
-| 9 | Me sentí seguro al utilizar el sistema. | | | | | |
-| 10 | Necesité aprender muchas cosas antes de poder usar el sistema. | | | | | |
+| 5 | Consideré que las funciones estaban bien integradas. | | | | | |
+| 6 | Pensé que había demasiada inconsistencia. | | | | | |
+| 7 | Imagino que la mayoría aprendería rápidamente. | | | | | |
+| 8 | Encontré el sistema incómodo o difícil. | | | | | |
+| 9 | Me sentí seguro al utilizarlo. | | | | | |
+| 10 | Necesité aprender muchas cosas antes de usarlo. | | | | | |
 
----
+## Observaciones abiertas
 
-## Cálculo del puntaje SUS
+¿Qué mejoraría del sistema? _______________________________________________
 
-**Preguntas impares (1, 3, 5, 7, 9):** aporte = respuesta − 1
+## Protección de datos
 
-**Preguntas pares (2, 4, 6, 8, 10):** aporte = 5 − respuesta
+- No registrar nombres completos ni correos en el CSV público.
+- Almacenar datos en `docs/reportes/usability/sus-responses.csv` solo con código anónimo.
+- Calcular resultados: `npm run sus:calculate`
 
-**Puntaje SUS** = (suma de aportes) × 2.5 → rango **0 a 100**
+## Referencias
 
-### Interpretación orientativa
-
-| Rango | Interpretación |
-| ----- | -------------- |
-| &lt; 50 | Usabilidad deficiente |
-| 50 – 67 | Usabilidad marginal |
-| ≥ 68 | Por encima del promedio |
-| ≥ 80 | Usabilidad excelente |
-
-> Estos rangos son orientativos y no sustituyen el análisis cualitativo.
-
----
-
-## Registro de resultados (plantilla)
-
-| Participante | Rol | P1 | P2 | P3 | P4 | P5 | P6 | P7 | P8 | P9 | P10 | SUS |
-| ------------ | --- | -: | -: | -: | -: | -: | -: | -: | -: | -: | --: | --: |
-| P01 | ADMIN | — | — | — | — | — | — | — | — | — | — | Pendiente |
-| P02 | TEACHER | — | — | — | — | — | — | — | — | — | — | Pendiente |
-| P03 | STUDENT | — | — | — | — | — | — | — | — | — | — | Pendiente |
-
-**Promedio global:** Pendiente de medición
-
----
-
-## Observaciones cualitativas
-
-_Espacio libre para comentarios del participante (sin datos personales innecesarios)._
-
----
-
-_Evidencia: guardar formulario anonimizado en `docs/evidencias/sus/`_
+- Protocolo: [`SUS_EVALUATION_PROTOCOL.md`](../reportes/usability/SUS_EVALUATION_PROTOCOL.md)
+- Plantilla CSV: [`sus-responses-template.csv`](../reportes/usability/sus-responses-template.csv)

@@ -728,12 +728,33 @@ La gestión se organizó por módulos funcionales: autenticación, entidades aca
 
 | Recurso | Ubicación |
 |---------|-----------|
+| **Informe técnico 7.2** | [`docs/INFORME_TECNICO_INTEGRAL_7_2.md`](docs/INFORME_TECNICO_INTEGRAL_7_2.md) |
+| Índice expediente técnico | [`docs/README.md`](docs/README.md) |
+| SonarQube | [`docs/reportes/sonar/GUIA_EJECUCION_SONARQUBE.md`](docs/reportes/sonar/GUIA_EJECUCION_SONARQUBE.md) |
+| OWASP / seguridad | [`docs/reportes/security/OWASP_ANALYSIS.md`](docs/reportes/security/OWASP_ANALYSIS.md) |
+| WCAG 2.2 | [`docs/reportes/accessibility/WCAG_2_2_VALIDATION.md`](docs/reportes/accessibility/WCAG_2_2_VALIDATION.md) |
+| SUS | [`docs/reportes/usability/SUS_ANALYSIS.md`](docs/reportes/usability/SUS_ANALYSIS.md) |
+| CI/CD | [`docs/CI_CD_GITHUB_ACTIONS.md`](docs/CI_CD_GITHUB_ACTIONS.md) |
+| Evidencias | [`docs/evidencias/README.md`](docs/evidencias/README.md) |
 | Reglas del motor y restricciones | [`AGENTS.md`](AGENTS.md) |
 | Especificación formal | [`SPEC.md`](SPEC.md) |
 | Plantillas de entorno | `backend/.env.example`, `frontend/.env.example` |
-| Repositorio | https://github.com/talitakeren/Repositorio_proyecto.git |
 
-> La carpeta `docs/` referenciada en fases anteriores del proyecto puede contener actas, métricas y entregables en el repositorio remoto o en Drive/Jira según el avance del curso.
+## 🛡️ Calidad, seguridad, accesibilidad y usabilidad
+
+El punto **7.2** del informe técnico integral documenta SonarQube, métricas, OWASP, WCAG 2.2, SUS y CI/CD con evidencias reproducibles.
+
+| Área | Enlace rápido |
+| ---- | ------------- |
+| Informe principal | [docs/INFORME_TECNICO_INTEGRAL_7_2.md](docs/INFORME_TECNICO_INTEGRAL_7_2.md) |
+| Cobertura y métricas | [docs/COVERAGE_ANALYSIS.md](docs/COVERAGE_ANALYSIS.md) |
+| Plan de pruebas | [docs/TEST_PLAN.md](docs/TEST_PLAN.md) |
+
+```bash
+npm test && npm run test:coverage   # 208 pruebas + LCOV
+npm run audit:security              # npm audit JSON
+npm run test:a11y                   # Cypress + axe (preview :5173)
+```
 
 ---
 

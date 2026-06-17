@@ -20,6 +20,7 @@
     "test:co2": "node scripts/co2-impact.js",
     "test:a11y": "cypress run --spec 'cypress/e2e/accessibility/**/*.cy.js'",
     "audit:security": "bash scripts/run-security-audit.sh",
+    "sus:calculate": "node scripts/calculate-sus.js docs/reportes/usability/sus-responses.csv",
     "test:e2e": "cypress run --spec 'cypress/e2e/e2e/**/*.cy.js'",
     "test:all": "bash scripts/run-all-tests.sh",
     "cy:install": "cypress install",

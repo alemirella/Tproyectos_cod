@@ -1,82 +1,61 @@
-# Evidencias técnicas — SGOHA
+# Índice de evidencias — SGOHA
 
-Este directorio almacena capturas, reportes exportados y resultados verificables del punto **7.2** del informe técnico integral.
+> Relacionar capturas con el [Informe 7.2](../INFORME_TECNICO_INTEGRAL_7_2.md). No incluir secretos ni PII.
 
-## Reglas
+## 🔍 SonarQube
 
-1. **No incluir datos sensibles**: contraseñas, tokens JWT, `MONGO_URI`, correos reales de usuarios.
-2. **Anonimizar participantes SUS**: usar códigos (`P01`, `P02`) sin nombres completos.
-3. **Incluir contexto**: fecha, rama (`main`), commit SHA cuando sea posible.
-4. **No editar capturas** para ocultar fallos críticos.
-5. **Relacionar cada evidencia** con el informe (`docs/INFORME_TECNICO_INTEGRAL_7_2.md`).
+| Código | Evidencia | Descripción | Estado |
+| ------ | --------- | ----------- | ------ |
+| SON-01 | `sonarqube/01-quality-gate.png` | Quality Gate en panel | 📸 Requiere ejecución SonarQube |
+| SON-02 | `sonarqube/02-issues.png` | Issues (bugs/smells) | 📸 Requiere ejecución SonarQube |
+| SON-03 | `sonarqube/03-coverage.png` | Cobertura importada LCOV | 📸 Requiere ejecución SonarQube |
+| SON-04 | `../reportes/sonar/frontend-quality.txt` | Salida ESLint | ✅ Generado |
+| SON-05 | `../reportes/sonar/coverage-summary.md` | Resumen Jest | ✅ Generado |
 
-## Convención de nombres
+## 🔐 OWASP
 
-### sonarqube/
+| Código | Evidencia | Descripción | Estado |
+| ------ | --------- | ----------- | ------ |
+| SEC-01 | `../reportes/security/backend-npm-audit.json` | Audit backend | ✅ 0 CVE |
+| SEC-02 | `../reportes/security/frontend-npm-audit.json` | Audit frontend | ✅ Generado |
+| SEC-03 | `owasp/04-zap-baseline.html` | Reporte ZAP | ⚙️ Artefacto CI |
+| SEC-04 | `owasp/03-codeql.png` | CodeQL GitHub | 📸 Pestaña Security |
 
-| Archivo | Contenido |
-|---------|-----------|
-| `01-quality-gate-inicial.png` | Quality Gate antes de correcciones |
-| `02-bugs-inicial.png` | Panel de bugs inicial |
-| `03-code-smells-inicial.png` | Code smells inicial |
-| `04-quality-gate-final.png` | Quality Gate después de correcciones |
-| `05-cobertura.png` | Gráfico de cobertura en Sonar |
+## ♿ WCAG
 
-### owasp/
+| Código | Evidencia | Descripción | Estado |
+| ------ | --------- | ----------- | ------ |
+| A11Y-01 | `wcag/01-lighthouse-login.png` | Lighthouse login | 📸 Ejecutar LHCI |
+| A11Y-02 | `cypress/screenshots/` | Fallos axe | Solo si CI falla |
+| A11Y-03 | `wcag/03-keyboard.png` | Navegación teclado | 🧑‍💻 Manual |
 
-| Archivo | Contenido |
-|---------|-----------|
-| `01-npm-audit-frontend.png` | Salida `npm audit` frontend |
-| `02-npm-audit-backend.png` | Salida `npm audit` backend |
-| `03-codeql-resultados.png` | Pestaña Security → Code scanning |
-| `04-zap-baseline.png` | Reporte OWASP ZAP (si se ejecuta) |
+## 🧑‍💻 SUS
 
-### wcag/
+| Código | Evidencia | Descripción | Estado |
+| ------ | --------- | ----------- | ------ |
+| SUS-01 | `../reportes/usability/sus-results.json` | Resultados calculados | Tras CSV real |
+| SUS-02 | `sus/01-cuestionarios.png` | Formularios anonimizados | 🧑‍💻 Sesión |
 
-| Archivo | Contenido |
-|---------|-----------|
-| `01-lighthouse-login.png` | Lighthouse accesibilidad — login |
-| `02-axe-dashboard.png` | axe DevTools — dashboard |
-| `03-keyboard-navigation.png` | Navegación por teclado |
-| `04-contrast-check.png` | Verificación de contraste |
+## ⚙️ CI/CD
 
-### sus/
+| Código | Evidencia | Descripción | Estado |
+| ------ | --------- | ----------- | ------ |
+| CI-01 | `ci-cd/01-ci-success.png` | Workflow CI verde | 📸 GitHub Actions |
+| CI-02 | `ci-cd/02-codeql.png` | CodeQL | ⚙️ Automatizado |
+| CI-03 | `ci-cd/03-sonar.png` | Sonar (si token) | Requiere credencial |
 
-| Archivo | Contenido |
-|---------|-----------|
-| `01-cuestionarios-anonimizados.png` | Formularios sin datos personales |
-| `02-calculo-sus.png` | Hoja de cálculo o tabla SUS |
-| `03-resultados-promedio.png` | Promedio por rol |
+## 🧪 Pruebas
 
-### ci-cd/
+| Código | Evidencia | Descripción | Estado |
+| ------ | --------- | ----------- | ------ |
+| TST-01 | `../TEST_EVIDENCES.md` | Tabla de trazabilidad | ✅ |
+| TST-02 | `pruebas/04-generacion-horarios.png` | Captura manual | Opcional |
 
-| Archivo | Contenido |
-|---------|-----------|
-| `01-ci-success.png` | Workflow CI en verde |
-| `02-codeql-success.png` | CodeQL completado |
-| `03-sonar-success.png` | Sonar workflow (si activo) |
-| `04-deployment-success.png` | Despliegue (cuando exista CD) |
-
-### pruebas/
-
-| Archivo | Contenido |
-|---------|-----------|
-| `01-login-admin.png` | Login administrador |
-| `02-disponibilidad-docente.png` | Grilla de disponibilidad |
-| `03-validacion-matricula.png` | Validación de matrícula |
-| `04-generacion-horarios.png` | Precheck / generación |
-
-## Reportes exportables (JSON/HTML)
-
-Los reportes generados por scripts se guardan en `docs/reportes/`:
-
-- `security/frontend-npm-audit.json`
-- `security/backend-npm-audit.json`
-- `accessibility/lighthouse/` (si se ejecuta Lighthouse CI)
-- `sonar/` (export manual desde SonarQube)
-
-Comando para auditoría de dependencias:
+## Reportes JSON/HTML (sin captura)
 
 ```bash
 npm run audit:security
+npm run test:coverage
 ```
+
+Ver [`docs/reportes/`](../reportes/) y [`docs/evidencias/README.md`](./README.md).
